@@ -72,8 +72,9 @@ Optional environment variables:
 ```text
 FIXIT_UPI_ID=yourupi@bank
 FIXIT_MERCHANT_NAME=FixIt
-RAZORPAY_KEY_ID=rzp_test_or_live_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+RAZORPAY_KEY_ID: rzp_test_SvX1dYtW9En9hP
+RAZORPAY_KEY_SECRET: Nx6tZRG7L9mG1MHOh6JiH1CL
+npm start
 PORT=3000
 ```
 
