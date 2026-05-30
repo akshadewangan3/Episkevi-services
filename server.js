@@ -166,7 +166,7 @@ async function handleApi(req, res) {
       workers: db.workers,
       settings: {
         commissionRate: COMMISSION_RATE,
-        upiId: process.env.FIXIT_UPI_ID || "yashdewangan110@okicici",
+        upiId: process.env.FIXIT_UPI_ID || "",
         merchantName: process.env.FIXIT_MERCHANT_NAME || "FixIt"
       }
     });
