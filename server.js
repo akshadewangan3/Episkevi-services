@@ -1,4 +1,5 @@
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -6,6 +7,8 @@ const crypto = require("crypto");
 const PORT = Number(process.env.PORT || 3000);
 const ADMIN_API_KEY = process.env.FIXIT_API_KEY || "change-this-secret";
 const COMMISSION_RATE = 0.1;
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || "";
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "";
 
 const rootDir = __dirname;
 const publicDir = path.join(rootDir, "public");
@@ -109,7 +112,20 @@ function sanitizeWorker(input) {
   };
 }
 
-function makeBooking(worker) {
+function sanitizeCustomer(input = {}) {
+  const phone = String(input.phone || "").replace(/[^\d]/g, "").slice(-10);
+  if (!input.name || phone.length !== 10) {
+    throw new Error("Customer name and 10 digit phone are required");
+  }
+  return {
+    name: String(input.name).trim().slice(0, 80),
+    phone,
+    address: String(input.address || "").trim().slice(0, 180),
+    note: String(input.note || "").trim().slice(0, 140)
+  };
+}
+
+function makeBooking(worker, customer = {}, payment = {}) {
   const commission = Math.round(worker.charge * COMMISSION_RATE);
   const total = worker.charge + commission;
   const now = new Date();
@@ -123,11 +139,59 @@ function makeBooking(worker) {
     base: worker.charge,
     commission,
     total,
+    customerName: customer.name || "Customer",
+    customerPhone: customer.phone || "",
+    customerAddress: customer.address || "",
+    note: customer.note || "",
+    paymentMethod: payment.method || "upi",
+    paymentStatus: payment.status || "initiated",
+    razorpayOrderId: payment.razorpayOrderId || "",
+    razorpayPaymentId: payment.razorpayPaymentId || "",
     status: "confirmed",
     createdAt: now.toISOString(),
     time: now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }) +
       " . " + now.toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" })
   };
+}
+
+function requestJson({ method = "GET", hostname, path: requestPath, auth, body }) {
+  return new Promise((resolve, reject) => {
+    const payload = body ? JSON.stringify(body) : "";
+    const req = https.request({
+      method,
+      hostname,
+      path: requestPath,
+      auth,
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(payload)
+      }
+    }, res => {
+      let raw = "";
+      res.on("data", chunk => raw += chunk);
+      res.on("end", () => {
+        const parsed = raw ? JSON.parse(raw) : {};
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          return reject(new Error(parsed.error?.description || parsed.error || "Razorpay request failed"));
+        }
+        resolve(parsed);
+      });
+    });
+    req.on("error", reject);
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
+
+function verifyRazorpaySignature(orderId, paymentId, signature) {
+  if (!RAZORPAY_KEY_SECRET) return false;
+  const expected = crypto
+    .createHmac("sha256", RAZORPAY_KEY_SECRET)
+    .update(`${orderId}|${paymentId}`)
+    .digest("hex");
+  const actual = Buffer.from(String(signature || ""));
+  const expectedBuffer = Buffer.from(expected);
+  return actual.length === expectedBuffer.length && crypto.timingSafeEqual(actual, expectedBuffer);
 }
 
 function serveStatic(req, res) {
@@ -166,8 +230,10 @@ async function handleApi(req, res) {
       workers: db.workers,
       settings: {
         commissionRate: COMMISSION_RATE,
-        upiId: process.env.FIXIT_UPI_ID || "",
-        merchantName: process.env.FIXIT_MERCHANT_NAME || "FixIt"
+        upiId: process.env.FIXIT_UPI_ID || "yashdewangan110@okicici",
+        merchantName: process.env.FIXIT_MERCHANT_NAME || "FixIt",
+        razorpayKeyId: RAZORPAY_KEY_ID,
+        razorpayEnabled: Boolean(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET)
       }
     });
   }
@@ -181,11 +247,70 @@ async function handleApi(req, res) {
     return sendJson(res, 200, { bookings: db.bookings });
   }
 
+  if (req.method === "GET" && url.pathname === "/api/customer/bookings") {
+    const phone = String(url.searchParams.get("phone") || "").replace(/[^\d]/g, "").slice(-10);
+    if (phone.length !== 10) return sendError(res, 400, "Valid customer phone is required");
+    const bookings = db.bookings.filter(b => String(b.customerPhone || "").slice(-10) === phone);
+    return sendJson(res, 200, { bookings });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/payments/razorpay/order") {
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+      return sendError(res, 503, "Razorpay keys are not configured on the server");
+    }
+    const body = await parseBody(req);
+    const worker = db.workers.find(w => Number(w.id) === Number(body.workerId));
+    if (!worker) return sendError(res, 404, "Worker not found");
+    sanitizeCustomer(body.customer || {});
+    const price = Math.round((worker.charge + (worker.charge * COMMISSION_RATE)) * 100);
+    const receipt = `fixit_${Date.now()}_${worker.id}`;
+    const order = await requestJson({
+      method: "POST",
+      hostname: "api.razorpay.com",
+      path: "/v1/orders",
+      auth: `${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`,
+      body: {
+        amount: price,
+        currency: "INR",
+        receipt,
+        notes: {
+          workerId: String(worker.id),
+          service: worker.service
+        }
+      }
+    });
+    return sendJson(res, 201, { order, keyId: RAZORPAY_KEY_ID });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/payments/razorpay/verify") {
+    const body = await parseBody(req);
+    const worker = db.workers.find(w => Number(w.id) === Number(body.workerId));
+    if (!worker) return sendError(res, 404, "Worker not found");
+    const customer = sanitizeCustomer(body.customer || {});
+    const payment = body.payment || {};
+    if (!verifyRazorpaySignature(payment.razorpay_order_id, payment.razorpay_payment_id, payment.razorpay_signature)) {
+      return sendError(res, 400, "Payment verification failed");
+    }
+    const booking = makeBooking(worker, customer, {
+      method: "razorpay",
+      status: "paid",
+      razorpayOrderId: payment.razorpay_order_id,
+      razorpayPaymentId: payment.razorpay_payment_id
+    });
+    db.bookings.push(booking);
+    writeDb(db);
+    return sendJson(res, 201, { booking });
+  }
+
   if (req.method === "POST" && url.pathname === "/api/bookings") {
     const body = await parseBody(req);
     const worker = db.workers.find(w => Number(w.id) === Number(body.workerId));
     if (!worker) return sendError(res, 404, "Worker not found");
-    const booking = makeBooking(worker);
+    const customer = sanitizeCustomer(body.customer || {});
+    const booking = makeBooking(worker, customer, {
+      method: body.paymentMethod === "cash" ? "cash" : "upi",
+      status: body.paymentMethod === "cash" ? "pending" : "initiated"
+    });
     db.bookings.push(booking);
     writeDb(db);
     return sendJson(res, 201, { booking });
@@ -229,4 +354,5 @@ ensureDb();
 server.listen(PORT, () => {
   console.log(`FixIt is running at http://localhost:${PORT}`);
   console.log("Set FIXIT_API_KEY before publishing. Current key is the development default.");
+  console.log("Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to enable Razorpay Checkout.");
 });
