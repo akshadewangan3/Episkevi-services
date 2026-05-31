@@ -2,611 +2,85 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>FixIt - Customer and Worker App</title>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FixIt - Customer & Worker Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
-:root {
-  --primary: #0f766e;
-  --primary-dark: #0d4f4a;
-  --accent: #f97316;
-  --bg: #eef6f3;
-  --card: #ffffff;
-  --ink: #10201f;
-  --muted: #667875;
-  --line: #dbe9e5;
-  --good: #16803d;
-  --warn: #b45309;
-  --bad: #c83b31;
-  --shadow: 0 14px 36px rgba(15, 52, 48, .12);
-  --soft: 0 8px 24px rgba(15, 52, 48, .08);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html {
-  background:
-    radial-gradient(circle at top left, rgba(20, 184, 166, .16), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(249, 115, 22, .14), transparent 30%),
-    #dfece8;
-}
-body {
-  max-width: 480px;
-  min-height: 100vh;
-  margin: 0 auto;
-  background: linear-gradient(180deg, #f8fcfb 0%, var(--bg) 42%, #f7faf9 100%);
-  color: var(--ink);
-  font-family: "Nunito", sans-serif;
-  box-shadow: 0 0 0 1px rgba(16, 32, 31, .06), 0 24px 80px rgba(16, 32, 31, .16);
-}
-button, input, select, textarea { font: inherit; }
-button { cursor: pointer; }
-.screen { display: none; }
-.screen.active { display: block; }
-.shell { min-height: 100vh; padding-bottom: 86px; }
-.hero {
-  padding: 22px 20px 24px;
-  color: #fff;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.13), transparent 35%),
-    linear-gradient(135deg, #0f766e 0%, #0b5d56 58%, #123b53 100%);
-  border-radius: 0 0 30px 30px;
-}
-.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.logo { font-family: "Baloo 2", cursive; font-size: 29px; font-weight: 800; line-height: 1; }
-.logo span { color: #fbbf24; }
-.icon-btn, .pill {
-  border: 1px solid rgba(255,255,255,.28);
-  background: rgba(255,255,255,.14);
-  color: inherit;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 13px;
-  font-weight: 900;
-}
-.icon-btn { width: 40px; height: 40px; padding: 0; display: grid; place-items: center; }
-.hero h1 { margin-top: 22px; font-family: "Baloo 2", cursive; font-size: 27px; line-height: 1.04; }
-.hero p { margin-top: 6px; color: rgba(255,255,255,.82); font-weight: 700; font-size: 14px; }
-.page { padding: 18px; }
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  padding: 16px;
-  box-shadow: var(--soft);
-}
-.stack { display: grid; gap: 14px; }
-.row { display: flex; gap: 10px; align-items: center; }
-.between { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.title { font-family: "Baloo 2", cursive; font-size: 20px; font-weight: 800; }
-.muted { color: var(--muted); font-size: 13px; line-height: 1.45; }
-.small { font-size: 12px; }
-.btn {
-  border: 0;
-  border-radius: 15px;
-  padding: 13px 15px;
-  background: linear-gradient(135deg, var(--primary), #14b8a6);
-  color: #fff;
-  font-weight: 900;
-  box-shadow: var(--soft);
-}
-.btn.secondary { background: #e4efec; color: var(--ink); box-shadow: none; }
-.btn.dark { background: linear-gradient(135deg, #0d1f1d, #123b53); }
-.btn.warn { background: linear-gradient(135deg, #f97316, #ea580c); }
-.btn.full { width: 100%; }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
-.field { display: grid; gap: 6px; }
-.field label { color: var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .45px; }
-.field input, .field select, .field textarea {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px 13px;
-  background: #fff;
-  color: var(--ink);
-  outline: 0;
-}
-.field input:focus, .field select:focus, .field textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(20, 184, 166, .12);
-}
-.role-grid { display: grid; gap: 13px; margin-top: 16px; }
-.role-card { text-align: left; min-height: 122px; }
-.role-mark {
-  width: 48px; height: 48px; border-radius: 17px;
-  display: grid; place-items: center; margin-bottom: 10px;
-  background: #e7f7f4; color: var(--primary); font-weight: 900;
-}
-.tabs {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 480px;
-  display: flex;
-  gap: 4px;
-  padding: 10px 12px 16px;
-  background: rgba(255,255,255,.94);
-  border-top: 1px solid var(--line);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 -12px 28px rgba(15,52,48,.08);
-  z-index: 30;
-}
-.tab { flex: 1; border: 0; background: transparent; color: var(--muted); font-size: 11px; font-weight: 900; padding: 7px 4px; border-radius: 14px; }
-.tab.active { background: #e7f7f4; color: var(--primary); }
-.service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.service {
-  min-height: 94px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
-  padding: 12px 8px;
-  text-align: center;
-  box-shadow: var(--soft);
-}
-.service .mark, .worker-mark {
-  display: grid; place-items: center;
-  width: 42px; height: 42px; border-radius: 15px;
-  background: #e7f7f4; color: var(--primary);
-  font-weight: 900; margin: 0 auto 8px;
-}
-.worker-card { display: flex; gap: 13px; align-items: center; }
-.worker-card .info { flex: 1; min-width: 0; }
-.worker-name { font-size: 16px; font-weight: 900; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
-.chip { border-radius: 999px; background: #f1f7f5; color: var(--muted); padding: 4px 9px; font-size: 11px; font-weight: 900; }
-.chip.good { background: #dcfce7; color: var(--good); }
-.chip.warn { background: #ffedd5; color: var(--warn); }
-.menu-panel {
-  position: fixed; inset: 0 auto 0 0; width: min(84vw, 360px);
-  background: #fff; border-right: 1px solid var(--line);
-  transform: translateX(-105%); transition: transform .2s ease;
-  z-index: 60; padding: 18px; box-shadow: var(--shadow);
-}
-.menu-panel.open { transform: translateX(0); }
-.menu-backdrop { display: none; position: fixed; inset: 0; background: rgba(13,31,29,.48); z-index: 50; }
-.menu-backdrop.open { display: block; }
-.menu-item { width: 100%; border: 0; background: transparent; padding: 14px 10px; text-align: left; border-radius: 14px; font-weight: 900; color: var(--ink); }
-.menu-item:hover, .menu-item.active { background: #e7f7f4; color: var(--primary); }
-.modal {
-  display: none; position: fixed; inset: 0; z-index: 80;
-  align-items: flex-end; background: rgba(13,31,29,.58); backdrop-filter: blur(5px);
-}
-.modal.open { display: flex; }
-.sheet {
-  width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
-  margin: 0 auto; background: linear-gradient(180deg, #fff, #f8fcfb);
-  border-radius: 30px 30px 0 0; padding: 22px 20px 32px;
-}
-.handle { width: 42px; height: 4px; background: #d7dfdd; border-radius: 99px; margin: 0 auto 16px; }
-.map {
-  position: relative; min-height: 230px; overflow: hidden;
-  border-radius: 22px; border: 1px solid var(--line);
-  background:
-    linear-gradient(90deg, transparent 48%, rgba(15,118,110,.12) 49%, rgba(15,118,110,.12) 51%, transparent 52%),
-    linear-gradient(0deg, transparent 48%, rgba(249,115,22,.12) 49%, rgba(249,115,22,.12) 51%, transparent 52%),
-    #ecfdf5;
-}
-.road { position: absolute; background: rgba(15,76,72,.14); border-radius: 999px; }
-.road.a { width: 360px; height: 18px; left: -35px; top: 94px; transform: rotate(-22deg); }
-.road.b { width: 320px; height: 16px; left: 80px; top: 150px; transform: rotate(28deg); }
-.pin { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50% 50% 50% 12px; rotate: -45deg; color: #fff; font-weight: 900; box-shadow: var(--shadow); }
-.pin span { rotate: 45deg; }
-.pin.worker { left: 62%; top: 40%; background: var(--primary); }
-.pin.customer { left: 28%; top: 72%; background: var(--accent); }
-.route-line { position: absolute; left: 31%; top: 57%; width: 150px; border-top: 4px dashed rgba(15,118,110,.4); transform: rotate(-28deg); }
-.timeline { display: grid; gap: 10px; }
-.timeline .step { display: flex; gap: 10px; align-items: flex-start; }
-.dot { width: 12px; height: 12px; border-radius: 99px; margin-top: 4px; background: #cbd5d1; }
-.step.done .dot { background: var(--primary); }
-.stars { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
-.star { border: 0; background: #fff7ed; color: #f59e0b; border-radius: 14px; width: 44px; height: 44px; font-size: 19px; }
-.star.active { background: #f59e0b; color: #fff; }
-.chat { display: grid; gap: 10px; }
-.bubble { padding: 11px 13px; border-radius: 16px; max-width: 88%; font-size: 14px; }
-.bubble.bot { background: #e7f7f4; color: #0d4f4a; }
-.bubble.user { background: #123b53; color: #fff; margin-left: auto; }
-.toast {
-  position: fixed; left: 50%; top: 18px; transform: translateX(-50%);
-  z-index: 120; opacity: 0; pointer-events: none;
-  background: #0d1f1d; color: #fff; border-radius: 999px;
-  padding: 11px 16px; font-size: 13px; font-weight: 900; transition: opacity .2s;
-}
-.toast.show { opacity: 1; }
-.empty { color: #8a9b98; text-align: center; padding: 32px 14px; }
+:root{--ink:#101828;--muted:#667085;--line:#d9e2ea;--paper:#fff;--wash:#f4f7fa;--brand:#0f766e;--dark:#111827;--red:#c8322b;--amber:#a16207;--blue:#2459d6;--shadow:0 18px 45px rgba(16,24,40,.1)}
+*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font-family:Inter,system-ui,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.top{position:sticky;top:0;z-index:30;border-bottom:1px solid var(--line);background:rgba(255,255,255,.94);backdrop-filter:blur(14px)}.topin{max-width:1220px;margin:auto;padding:14px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between}.brand{display:flex;gap:10px;align-items:center;font-size:23px;font-weight:900}.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:8px;background:var(--brand);color:white}.tabs{display:flex;gap:6px;padding:5px;border:1px solid var(--line);border-radius:8px;background:#f8fafc}.tabs button{border:0;border-radius:6px;background:transparent;color:var(--muted);font-weight:850;min-height:36px;padding:0 13px}.tabs button.active{background:var(--dark);color:white}.screen{display:none}.screen.active{display:block}.wrap{max-width:1220px;margin:auto;padding:24px 22px 54px}.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;min-height:360px}.heroMain{border-radius:8px;box-shadow:var(--shadow);color:white;padding:clamp(28px,5vw,54px);background:linear-gradient(110deg,rgba(15,118,110,.98),rgba(15,118,110,.62),rgba(16,24,40,.28)),url("https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1400&q=80") center/cover}.eyebrow{font-size:12px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.82)}h1{font-size:clamp(38px,6vw,70px);line-height:.96;margin:12px 0}.lead{font-size:18px;line-height:1.55;color:rgba(255,255,255,.9);max-width:650px}.heroCards{display:grid;gap:14px}.metric,.panel,.card,.drawer,.modal{border:1px solid var(--line);border-radius:8px;background:var(--paper);box-shadow:0 10px 28px rgba(16,24,40,.06)}.metric{padding:22px;display:grid;align-content:center}.metric strong{font-size:34px}.metric span,.sub,.muted{color:var(--muted);line-height:1.45}.panel{margin-top:22px;padding:22px}.head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}.title{font-size:22px;font-weight:900;margin:0}.btn{min-height:43px;border:0;border-radius:7px;padding:0 16px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}.primary{background:var(--brand);color:white}.dark{background:var(--dark);color:white}.soft{background:#e8f6f4;color:#0b5f59}.danger{background:#fff1f0;color:var(--red)}.warn{background:#fff7e6;color:var(--amber)}.light{background:white;color:var(--ink)}.btn:disabled{opacity:.52;cursor:not-allowed}.grid2{display:grid;grid-template-columns:320px 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.field{margin-bottom:12px}.field label{display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.field input,.field select,.field textarea{width:100%;min-height:44px;border:1px solid var(--line);border-radius:7px;padding:11px 12px;outline:0;background:white}.field textarea{min-height:84px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(15,118,110,.12)}.chips{display:grid;grid-template-columns:repeat(6,minmax(116px,1fr));gap:12px}.chip{min-height:86px;border:1px solid var(--line);border-radius:8px;background:white;text-align:left;padding:14px}.chip.active{background:#effaf8;border-color:var(--brand)}.icon{width:34px;height:34px;border-radius:7px;background:var(--dark);color:white;display:grid;place-items:center;font-size:12px;font-weight:900;margin-bottom:10px}.worker{min-height:330px;padding:17px;display:flex;flex-direction:column}.row{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.avatar{width:58px;height:58px;border-radius:8px;background:#e8f6f4;color:#0b5f59;overflow:hidden;display:grid;place-items:center;font-weight:900;flex:0 0 auto}.avatar img{width:100%;height:100%;object-fit:cover}.name{font-weight:900}.meta{font-size:13px;color:var(--muted);line-height:1.45}.tags{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tag{min-height:26px;border-radius:999px;padding:5px 10px;background:#f2f4f7;color:#344054;font-size:12px;font-weight:850}.green{background:#ecfdf3;color:#087443}.amber{background:#fff7df;color:#9a6700}.blue{background:#eff6ff;color:var(--blue)}.exp{flex:1;color:var(--muted);line-height:1.55}.foot{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:16px}.price{font-size:20px;font-weight:900;color:#0b5f59}.drawer{padding:16px;display:grid;gap:8px;align-content:start}.menuBtn{width:100%;justify-content:flex-start}.list{display:grid;gap:12px}.card{padding:16px}.statusLine{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{padding:14px;border:1px solid var(--line);border-radius:8px;background:#fbfcfd}.stat strong{display:block;font-size:24px}.miniMap{height:170px;border-radius:8px;border:1px solid var(--line);background:linear-gradient(135deg,#e8f6f4,#eef6ff);position:relative;overflow:hidden}.pin{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--red);box-shadow:0 0 0 7px rgba(200,50,43,.14);transform:translate(-50%,-50%)}.pin.worker{background:var(--brand);box-shadow:0 0 0 7px rgba(15,118,110,.14)}.route{position:absolute;left:24%;top:52%;right:30%;border-top:3px dashed rgba(16,24,40,.3);transform:rotate(-12deg)}.modalCover{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(9,13,18,.62)}.modalCover.open{display:flex}.modal{width:min(820px,100%);max-height:92vh;overflow:auto}.modalHead{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}.modalBody{padding:20px}.summary{border-radius:8px;background:#111827;color:white;padding:16px}.sum{display:flex;justify-content:space-between;padding:8px 0;color:rgba(255,255,255,.78)}.sum.total{border-top:1px solid rgba(255,255,255,.18);margin-top:8px;padding-top:14px;color:white;font-weight:900;font-size:20px}.toast{position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:200;display:none;max-width:min(92vw,580px);border-radius:999px;background:var(--dark);color:white;padding:12px 18px;font-weight:850;box-shadow:var(--shadow)}.toast.show{display:block}.empty{border:1px dashed var(--line);border-radius:8px;padding:24px;text-align:center;color:var(--muted);font-weight:750}.chatBox{height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:12px;background:#fbfcfd}.chatMsg{margin-bottom:10px;padding:10px 12px;border-radius:8px;background:white}.chatMsg.me{background:#e8f6f4}.hamb{display:none}
+@media(max-width:940px){.hero,.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:repeat(2,1fr)}.chips{grid-template-columns:repeat(3,1fr)}.statusLine{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.topin{align-items:stretch;flex-direction:column}.tabs{display:grid;grid-template-columns:repeat(4,1fr)}.wrap{padding:16px 14px 36px}.grid3,.chips,.statusLine{grid-template-columns:1fr}.head,.foot{align-items:stretch;flex-direction:column}.drawer{display:none}.drawer.open{display:grid}.hamb{display:inline-flex}}
 </style>
 </head>
 <body>
-<div class="toast" id="toast">Update</div>
-<div class="menu-backdrop" id="menuBackdrop" onclick="toggleMenu(false)"></div>
-<aside class="menu-panel" id="sideMenu">
-  <div class="between" style="margin-bottom:18px">
-    <div><div class="logo" style="color:var(--primary)">Fix<span>It</span></div><div class="muted">Customer menu</div></div>
-    <button class="btn secondary" onclick="toggleMenu(false)">Close</button>
-  </div>
-  <button class="menu-item active" onclick="customerSection('home')">Home</button>
-  <button class="menu-item" onclick="customerSection('profile')">Profile</button>
-  <button class="menu-item" onclick="customerSection('address')">Address</button>
-  <button class="menu-item" onclick="customerSection('settings')">App Setting</button>
-  <button class="menu-item" onclick="customerSection('help')">Help and Support</button>
-  <button class="menu-item" onclick="logout()">Logout</button>
-</aside>
+<div id="toast" class="toast"></div>
+<header class="top"><div class="topin"><div class="brand"><span class="mark">FI</span>FixIt</div><nav class="tabs"><button id="tabHome" class="active" onclick="show('home')">Home</button><button id="tabCustomer" onclick="show('customer')">Customer</button><button id="tabWorker" onclick="show('worker')">Worker</button><button id="tabAdmin" onclick="show('admin')">Admin</button></nav><div id="sync" class="muted">Connecting</div></div></header>
 
-<section id="authScreen" class="screen active shell">
-  <div class="hero">
-    <div class="topbar"><div class="logo">Fix<span>It</span></div><span class="pill">Multi App</span></div>
-    <h1>Customer aur Worker dono ke liye ek app</h1>
-    <p>Book services like Zomato/Uber style, manage worker jobs, track location, and collect reviews.</p>
-  </div>
-  <div class="page stack">
-    <div class="role-grid">
-      <button class="card role-card" onclick="chooseRole('customer')">
-        <div class="role-mark">CU</div>
-        <div class="title">Customer Login</div>
-        <div class="muted">Book worker, see tracking, profile, address, settings and AI help.</div>
-      </button>
-      <button class="card role-card" onclick="chooseRole('worker')">
-        <div class="role-mark">WK</div>
-        <div class="title">Worker Login</div>
-        <div class="muted">Verification, personal details, dashboard and incoming bookings.</div>
-      </button>
-    </div>
-    <div id="loginForm" class="card stack" style="display:none"></div>
-  </div>
-</section>
+<main id="home" class="screen active"><div class="wrap">
+  <section class="hero"><div class="heroMain"><div class="eyebrow">Customer + worker app</div><h1>Zomato style service marketplace, Uber style worker jobs.</h1><p class="lead">Customers book verified plumbers, electricians and more. Workers login, complete verification, receive incoming bookings, update location, finish jobs and trigger WhatsApp review links.</p><div class="hero-actions"><button class="btn light" onclick="show('customer')">Customer login</button> <button class="btn dark" onclick="show('worker')">Worker login</button></div></div><div class="heroCards"><div class="metric"><strong id="mWorkers">0</strong><span>Verified workers online/offline with live area and location.</span></div><div class="metric"><strong id="mBookings">0</strong><span>Booking flow with payment, location card and reviews.</span></div></div></section>
+  <section class="panel"><div class="head"><div><h2 class="title">Services</h2><div class="sub">Pick a category and book a verified worker.</div></div></div><div id="services" class="chips"></div></section>
+  <section class="panel"><div class="head"><div><h2 class="title">Verified Workers</h2><div class="sub" id="workerSub">Showing all.</div></div><div class="row"><input id="search" class="fieldInput" placeholder="Search service, worker, area" oninput="renderWorkers()"><select id="area" onchange="renderWorkers()"></select></div></div><div id="workers" class="grid3"></div></section>
+</div></main>
 
-<section id="customerScreen" class="screen shell">
-  <div class="hero">
-    <div class="topbar">
-      <button class="icon-btn" onclick="toggleMenu(true)">☰</button>
-      <div class="logo">Fix<span>It</span></div>
-      <button class="pill" onclick="logout()">Logout</button>
-    </div>
-    <h1 id="customerHello">Book trusted home services</h1>
-    <p>Worker assign hote hi location and status yahin dikhega.</p>
-  </div>
-  <main class="page stack" id="customerContent"></main>
-  <nav class="tabs">
-    <button class="tab active" onclick="customerSection('home')">Home</button>
-    <button class="tab" onclick="customerSection('profile')">Profile</button>
-    <button class="tab" onclick="customerSection('address')">Address</button>
-    <button class="tab" onclick="customerSection('help')">Help</button>
-  </nav>
-</section>
+<main id="customer" class="screen"><div class="wrap grid2">
+  <aside class="drawer open" id="custMenu"><button class="btn soft menuBtn" onclick="custSection('custHome')">Home</button><button class="btn soft menuBtn" onclick="custSection('custProfile')">Profile</button><button class="btn soft menuBtn" onclick="custSection('custAddress')">Address</button><button class="btn soft menuBtn" onclick="custSection('custSettings')">App Settings</button><button class="btn soft menuBtn" onclick="custSection('custHelp')">Help & Support</button></aside>
+  <section class="panel" style="margin-top:0"><div class="head"><div><h2 class="title">Customer Panel</h2><div class="sub">Login with phone, manage address, track bookings and chat with support.</div></div><button class="btn soft hamb" onclick="toggleCustMenu()">Menu</button></div>
+    <div id="custHome" class="custSec"><div class="field"><label>Name</label><input id="cName" placeholder="Customer name"></div><div class="field"><label>Phone</label><input id="cPhone" maxlength="10" placeholder="10 digit phone"></div><button class="btn primary" onclick="customerLogin()">Login / Save</button><div id="custBookings" class="list" style="margin-top:16px"></div></div>
+    <div id="custProfile" class="custSec" style="display:none"><div class="field"><label>Name</label><input id="cProfileName"></div><div class="field"><label>Phone</label><input id="cProfilePhone" maxlength="10"></div><button class="btn primary" onclick="customerLogin(true)">Update profile</button></div>
+    <div id="custAddress" class="custSec" style="display:none"><div class="field"><label>Address</label><textarea id="cAddress" placeholder="House, street, landmark"></textarea></div><div class="field"><label>City</label><input id="cCity" value="Ambikapur"></div><button class="btn primary" onclick="customerLogin(true)">Save address</button></div>
+    <div id="custSettings" class="custSec" style="display:none"><div class="card"><div class="row"><div><b>Notifications</b><div class="meta">Booking updates and review reminders.</div></div><input id="cNotify" type="checkbox" checked></div></div></div>
+    <div id="custHelp" class="custSec" style="display:none"><div class="chatBox" id="chatBox"></div><div class="row" style="margin-top:10px"><input id="chatInput" placeholder="Ask about booking, worker, refund..."><button class="btn dark" onclick="sendHelp()">Send</button></div></div>
+  </section>
+</div></main>
 
-<section id="workerScreen" class="screen shell">
-  <div class="hero">
-    <div class="topbar">
-      <div class="logo">Fix<span>It</span></div>
-      <button class="pill" onclick="logout()">Logout</button>
-    </div>
-    <h1 id="workerHello">Worker Partner</h1>
-    <p>Verification, dashboard aur Uber-style incoming bookings.</p>
-  </div>
-  <main class="page stack" id="workerContent"></main>
-  <nav class="tabs">
-    <button class="tab active" onclick="workerSection('dashboard')">Dashboard</button>
-    <button class="tab" onclick="workerSection('verification')">Verify</button>
-    <button class="tab" onclick="workerSection('details')">Details</button>
-    <button class="tab" onclick="workerSection('bookings')">Bookings</button>
-  </nav>
-</section>
+<main id="worker" class="screen"><div class="wrap">
+  <section class="panel"><div class="head"><div><h2 class="title">Worker App</h2><div class="sub">Zomato-style onboarding and Uber-style incoming jobs.</div></div></div>
+    <div class="grid2"><div><h3>Login</h3><div class="field"><label>Worker Phone</label><input id="wLoginPhone" maxlength="10"></div><button class="btn dark" onclick="workerLogin()">Login</button><hr><h3>New Worker Registration</h3><div class="field"><label>Name</label><input id="rName"></div><div class="field"><label>Phone</label><input id="rPhone" maxlength="10"></div><div class="field"><label>Service</label><select id="rService"></select></div><div class="field"><label>Area</label><input id="rArea" value="Ambikapur"></div><div class="field"><label>Charge</label><input id="rCharge" type="number" placeholder="300"></div><div class="field"><label>Experience</label><textarea id="rExp"></textarea></div><div class="field"><label>Photo</label><input id="rPhoto" type="file" accept="image/png,image/jpeg,image/webp"></div><div class="field"><label>ID Proof</label><input id="rId" type="file" accept="image/png,image/jpeg,image/webp,application/pdf"></div><button class="btn primary" onclick="workerRegister()">Submit for verification</button></div>
+    <div><div class="statusLine"><div class="stat"><strong id="wJobs">0</strong><span>Bookings</span></div><div class="stat"><strong id="wEarn">Rs.0</strong><span>Earnings</span></div><div class="stat"><strong id="wRating">0</strong><span>Rating</span></div><div class="stat"><strong id="wStatus">-</strong><span>Status</span></div></div><div id="workerProfile" class="card"></div><div id="workerSteps" class="list" style="margin-top:12px"></div><h3>Incoming / Active Bookings</h3><div id="workerBookings" class="list"></div></div></div>
+  </section>
+</div></main>
 
-<section id="reviewScreen" class="screen shell">
-  <div class="hero"><div class="logo">Fix<span>It</span></div><h1>How was your service?</h1><p>Review worker aur service quality.</p></div>
-  <main class="page stack" id="reviewContent"></main>
-</section>
+<main id="admin" class="screen"><div class="wrap"><section class="panel"><div class="head"><div><h2 class="title">Admin Panel</h2><div class="sub">Verify workers, see customers, bookings, reviews and help tickets.</div></div></div><div id="adminLogin"><div class="field"><label>Admin Key</label><input id="adminKey" type="password" placeholder="FIXIT_API_KEY"></div><button class="btn dark" onclick="adminLogin()">Unlock</button></div><div id="adminDash" style="display:none"><div class="statusLine"><div class="stat"><strong id="aCustomers">0</strong><span>Customers</span></div><div class="stat"><strong id="aWorkers">0</strong><span>Workers</span></div><div class="stat"><strong id="aPending">0</strong><span>Pending</span></div><div class="stat"><strong id="aBookings">0</strong><span>Bookings</span></div></div><h3>Worker Verification</h3><div id="adminApps" class="list"></div><h3>Bookings</h3><div id="adminBookings" class="list"></div></div></section></div></main>
 
-<div class="modal" id="bookingModal">
-  <div class="sheet">
-    <div class="handle"></div>
-    <div id="bookingSheet"></div>
-  </div>
-</div>
+<div id="bookingModal" class="modalCover"><div class="modal"><div class="modalHead"><h2 class="title">Confirm Booking</h2><button class="btn soft" onclick="closeModal()">Close</button></div><div class="modalBody grid2"><div><div id="bookWorker" class="card"></div><div class="miniMap" style="margin-top:12px"><div class="route"></div><span class="pin" style="left:22%;top:64%"></span><span class="pin worker" id="workerPin" style="left:68%;top:38%"></span></div><div class="meta">Red = customer address, green = assigned worker location.</div><div class="summary" style="margin-top:12px"><div class="sum"><span>Service</span><b id="sBase"></b></div><div class="sum"><span>Platform fee</span><b id="sFee"></b></div><div class="sum total"><span>Total</span><span id="sTotal"></span></div></div></div><div><div class="field"><label>Name</label><input id="bName"></div><div class="field"><label>Phone</label><input id="bPhone" maxlength="10"></div><div class="field"><label>Address</label><textarea id="bAddress"></textarea></div><div class="field"><label>Issue</label><input id="bNote"></div><div class="row"><button class="btn primary" id="rzpBtn" onclick="payRazorpay()">Pay Razorpay</button><button class="btn dark" onclick="book('cash')">Book Cash</button></div><button class="btn soft" style="width:100%;margin-top:10px" onclick="book('upi')">Book UPI</button></div></div></div></div>
+
+<div id="reviewModal" class="modalCover"><div class="modal"><div class="modalHead"><h2 class="title">Review Worker</h2><button class="btn soft" onclick="closeReview()">Close</button></div><div class="modalBody"><div class="field"><label>Stars</label><select id="revStars"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div><div class="tags"><label class="tag"><input type="checkbox" value="Good behaviour"> Good behaviour</label><label class="tag"><input type="checkbox" value="Excellent service"> Excellent service</label><label class="tag"><input type="checkbox" value="On time"> On time</label></div><div class="field"><label>Comment</label><textarea id="revComment"></textarea></div><button class="btn primary" onclick="submitReview()">Submit review</button></div></div></div>
 
 <script>
-const SERVICES = ["Electrician", "Plumber", "Carpenter", "AC Repair", "Cleaning"];
-const ICONS = { Electrician: "EL", Plumber: "PL", Carpenter: "CP", "AC Repair": "AC", Cleaning: "CL" };
-const STATUS_FLOW = ["Assigned", "On the way", "Arrived", "In progress", "Done"];
-let app = { workers: [], reviews: [], settings: {}, role: null, customer: null, worker: null, bookings: [], selectedWorker: null, section: "home" };
-
-function $(id) { return document.getElementById(id); }
-function money(n) { return "Rs. " + Number(n || 0).toLocaleString("en-IN"); }
-function toast(msg) { const el = $("toast"); el.textContent = msg; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2600); }
-async function api(path, options = {}) {
-  const res = await fetch(path, options);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || "Request failed");
-  return data;
-}
-function show(id) { document.querySelectorAll(".screen").forEach(s => s.classList.remove("active")); $(id).classList.add("active"); window.scrollTo(0, 0); }
-function saveSession() { localStorage.setItem("fixit-session", JSON.stringify({ role: app.role, customer: app.customer, worker: app.worker })); }
-function loadSession() { try { return JSON.parse(localStorage.getItem("fixit-session") || "{}"); } catch { return {}; } }
-function logout() { localStorage.removeItem("fixit-session"); app.role = null; app.customer = null; app.worker = null; show("authScreen"); }
-
-async function bootstrap() {
-  const data = await api("/api/bootstrap");
-  app.workers = data.workers || [];
-  app.reviews = data.reviews || [];
-  app.settings = data.settings || {};
-}
-
-function chooseRole(role) {
-  const serviceOptions = SERVICES.map(s => `<option>${s}</option>`).join("");
-  $("loginForm").style.display = "grid";
-  $("loginForm").innerHTML = role === "customer" ? `
-    <div class="title">Customer Login</div>
-    <div class="field"><label>Name</label><input id="loginName" placeholder="Your name"></div>
-    <div class="field"><label>Phone</label><input id="loginPhone" placeholder="10 digit mobile"></div>
-    <div class="field"><label>Address</label><input id="loginAddress" placeholder="House, area, city"></div>
-    <button class="btn full" onclick="login('customer')">Continue as Customer</button>
-  ` : `
-    <div class="title">Worker Login</div>
-    <div class="field"><label>Name</label><input id="loginName" placeholder="Worker name"></div>
-    <div class="field"><label>Phone</label><input id="loginPhone" placeholder="10 digit mobile"></div>
-    <div class="field"><label>Service</label><select id="loginService">${serviceOptions}</select></div>
-    <div class="field"><label>Area</label><input id="loginAddress" placeholder="Your working area"></div>
-    <button class="btn full" onclick="login('worker')">Continue as Worker</button>
-  `;
-}
-
-async function login(role) {
-  try {
-    const body = {
-      role,
-      name: $("loginName").value.trim(),
-      phone: $("loginPhone").value.trim(),
-      address: $("loginAddress").value.trim(),
-      area: $("loginAddress").value.trim(),
-      service: $("loginService") ? $("loginService").value : undefined
-    };
-    const data = await api("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    app.role = role;
-    app.customer = data.customer || null;
-    app.worker = data.worker || null;
-    saveSession();
-    if (role === "customer") await enterCustomer();
-    else await enterWorker();
-  } catch (e) { toast(e.message); }
-}
-
-async function enterCustomer() {
-  $("customerHello").textContent = `Hi ${app.customer.name}, what do you need?`;
-  await loadCustomerBookings();
-  show("customerScreen");
-  customerSection("home");
-}
-
-async function loadCustomerBookings() {
-  if (!app.customer) return;
-  const data = await api(`/api/customers/${app.customer.id}/bookings`);
-  app.bookings = data.bookings || [];
-}
-
-function toggleMenu(open) {
-  $("sideMenu").classList.toggle("open", open);
-  $("menuBackdrop").classList.toggle("open", open);
-}
-
-function setTab(mode, section) {
-  const parent = mode === "customer" ? $("customerScreen") : $("workerScreen");
-  parent.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  [...parent.querySelectorAll(".tab")].find(t => t.textContent.toLowerCase().startsWith(section.slice(0, 4)))?.classList.add("active");
-}
-
-function customerSection(section) {
-  app.section = section;
-  toggleMenu(false);
-  setTab("customer", section);
-  const c = $("customerContent");
-  if (section === "profile") return c.innerHTML = customerProfile();
-  if (section === "address") return c.innerHTML = customerAddress();
-  if (section === "settings") return c.innerHTML = appSettings();
-  if (section === "help") return c.innerHTML = helpSupport();
-  c.innerHTML = customerHome();
-}
-
-function customerHome() {
-  return `
-    <div class="card stack">
-      <div class="between"><div><div class="title">Services</div><div class="muted">Choose service and book nearby worker.</div></div><span class="chip good">Live</span></div>
-      <div class="service-grid">${SERVICES.map(s => `<button class="service" onclick="filterService('${s}')"><div class="mark">${ICONS[s]}</div><strong>${s}</strong><div class="muted small">Book now</div></button>`).join("")}</div>
-    </div>
-    <div class="stack" id="workerList">${workerCards(app.workers)}</div>
-    <div class="card stack">${trackingBlock()}</div>
-  `;
-}
-
-function filterService(service) {
-  $("workerList").innerHTML = workerCards(app.workers.filter(w => w.service === service));
-}
-
-function workerCards(list) {
-  if (!list.length) return `<div class="card empty">No workers found.</div>`;
-  return list.map(w => {
-    const total = w.charge + Math.round(w.charge * (app.settings.commissionRate || .1));
-    return `<div class="card worker-card">
-      <div class="worker-mark">${ICONS[w.service] || "WK"}</div>
-      <div class="info">
-        <div class="worker-name">${escapeHtml(w.name)}</div>
-        <div class="muted">${escapeHtml(w.service)} . ${escapeHtml(w.area)} . ${escapeHtml(w.location?.label || "")}</div>
-        <div class="chips"><span class="chip ${w.status === "Available" ? "good" : "warn"}">${w.status}</span><span class="chip">Star ${w.rating}</span><span class="chip">${money(total)}</span>${w.verified ? '<span class="chip good">Verified</span>' : '<span class="chip warn">KYC Pending</span>'}</div>
-      </div>
-      <button class="btn" ${w.status !== "Available" ? "disabled" : ""} onclick="openBooking(${w.id})">Book</button>
-    </div>`;
-  }).join("");
-}
-
-function trackingBlock() {
-  const booking = [...app.bookings].reverse().find(b => b.status !== "Done") || app.bookings[app.bookings.length - 1];
-  if (!booking) return `<div class="title">No active booking</div><div class="muted">Book a worker to see assigned worker location here.</div>`;
-  return `
-    <div class="between"><div><div class="title">Worker Location</div><div class="muted">${escapeHtml(booking.workerName)} assigned for ${escapeHtml(booking.service)}</div></div><span class="chip good">${escapeHtml(booking.status)}</span></div>
-    <div class="map"><div class="road a"></div><div class="road b"></div><div class="route-line"></div><div class="pin worker"><span>W</span></div><div class="pin customer"><span>You</span></div></div>
-    <div class="muted">Worker near: ${escapeHtml(booking.workerLocation?.label || booking.area)}. This is demo map UI; real GPS needs worker mobile app/location permission.</div>
-    <div class="timeline">${STATUS_FLOW.map(s => `<div class="step ${STATUS_FLOW.indexOf(s) <= STATUS_FLOW.indexOf(booking.status) ? "done" : ""}"><div class="dot"></div><div><strong>${s}</strong><div class="muted small">${statusHint(s)}</div></div></div>`).join("")}</div>
-  `;
-}
-
-function statusHint(s) {
-  return ({ Assigned: "Worker accepted your job", "On the way": "Worker is coming", Arrived: "Worker reached location", "In progress": "Work started", Done: "Work completed" })[s] || "";
-}
-
-function customerProfile() {
-  return `<div class="card stack"><div class="title">Profile</div><div class="field"><label>Name</label><input value="${escapeHtml(app.customer.name)}"></div><div class="field"><label>Phone</label><input value="${escapeHtml(app.customer.phone)}"></div><button class="btn full">Save Profile</button></div>`;
-}
-function customerAddress() {
-  return `<div class="card stack"><div class="title">Address</div><div class="field"><label>Default Address</label><textarea rows="4">${escapeHtml(app.customer.address || "")}</textarea></div><button class="btn full">Save Address</button></div>`;
-}
-function appSettings() {
-  return `<div class="card stack"><div class="title">App Setting</div><div class="between"><div><strong>Language</strong><div class="muted">English / Hindi coming soon</div></div><span class="chip">English</span></div><div class="between"><div><strong>Notifications</strong><div class="muted">Booking and review alerts</div></div><span class="chip good">On</span></div></div>`;
-}
-function helpSupport() {
-  return `<div class="card stack"><div class="title">Help and Support</div><div class="chat" id="chat"><div class="bubble bot">Hi, I am FixIt AI help. Ask about booking, payment, worker, refund, or support.</div></div><div class="row"><input id="chatInput" placeholder="Type your problem..." style="flex:1;border:1px solid var(--line);border-radius:14px;padding:12px"><button class="btn" onclick="sendChat()">Send</button></div></div>`;
-}
-function sendChat() {
-  const input = $("chatInput");
-  const text = input.value.trim();
-  if (!text) return;
-  $("chat").insertAdjacentHTML("beforeend", `<div class="bubble user">${escapeHtml(text)}</div><div class="bubble bot">${aiReply(text)}</div>`);
-  input.value = "";
-}
-function aiReply(text) {
-  const q = text.toLowerCase();
-  if (q.includes("payment")) return "Payment issue ke liye booking id ready rakho. Real payment gateway integration ke baad payment status automatic verify hoga.";
-  if (q.includes("worker")) return "Worker location active booking card me dikhega. Worker app se status update hoga.";
-  if (q.includes("refund")) return "Refund policy admin panel se configure karni hogi. Abhi support team manually handle karegi.";
-  return "Support request noted. Aap booking details, phone number aur issue short me bhej sakte hain.";
-}
-
-function openBooking(id) {
-  const w = app.workers.find(x => Number(x.id) === Number(id));
-  if (!w) return;
-  app.selectedWorker = w;
-  const total = w.charge + Math.round(w.charge * (app.settings.commissionRate || .1));
-  $("bookingSheet").innerHTML = `
-    <div class="title">Confirm Booking</div>
-    <div class="card worker-card" style="box-shadow:none;margin:12px 0"><div class="worker-mark">${ICONS[w.service]}</div><div><div class="worker-name">${escapeHtml(w.name)}</div><div class="muted">${escapeHtml(w.service)} . ${escapeHtml(w.area)}</div></div></div>
-    <div class="card stack" style="box-shadow:none">
-      <div class="between"><span>Service charge</span><strong>${money(w.charge)}</strong></div>
-      <div class="between"><span>Platform fee</span><strong>${money(total - w.charge)}</strong></div>
-      <div class="between"><span>Total</span><strong>${money(total)}</strong></div>
-    </div>
-    <button class="btn full" style="margin-top:12px" onclick="confirmBooking()">Confirm Booking</button>
-    <button class="btn secondary full" style="margin-top:8px" onclick="closeBooking()">Cancel</button>
-  `;
-  $("bookingModal").classList.add("open");
-}
-function closeBooking() { $("bookingModal").classList.remove("open"); }
-async function confirmBooking() {
-  try {
-    const data = await api("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workerId: app.selectedWorker.id, customer: app.customer })
-    });
-    closeBooking();
-    toast("Worker assigned. Location is visible.");
-    await bootstrap();
-    await loadCustomerBookings();
-    customerSection("home");
-  } catch (e) { toast(e.message); }
-}
-
-async function enterWorker() {
-  $("workerHello").textContent = `Hi ${app.worker.name}`;
-  await loadWorkerDashboard();
-  show("workerScreen");
-  workerSection("dashboard");
-}
-async function loadWorkerDashboard() {
-  const data = await api(`/api/workers/${app.worker.id}/dashboard`);
-  app.worker = data.worker;
-  app.bookings = data.bookings || [];
-  app.reviews = data.reviews || [];
-  saveSession();
-}
-function workerSection(section) {
-  setTab("worker", section);
-  if (section === "verification") return $("workerContent").innerHTML = workerVerification();
-  if (section === "details") return $("workerContent").innerHTML = workerDetails();
-  if (section === "bookings") return $("workerContent").innerHTML = workerBookings();
-  $("workerContent").innerHTML = workerDashboard();
-}
-function workerDashboard() {
-  const active = app.bookings.filter(b => b.status !== "Done").length;
-  const done = app.bookings.filter(b => b.status === "Done").length;
-  const earnings = app.bookings.filter(b => b.status === "Done").reduce((sum, b) => sum + b.base, 0);
-  return `<div class="stack">
-    <div class="card between"><div><div class="title">Partner Dashboard</div><div class="muted">${escapeHtml(app.worker.service)} . ${escapeHtml(app.worker.area)}</div></div><span class="chip ${app.worker.verified ? "good" : "warn"}">${app.worker.kycStatus}</span></div>
-    <div class="service-grid"><div class="card"><strong>${active}</strong><div class="muted">Active</div></div><div class="card"><strong>${done}</strong><div class="muted">Done</div></div><div class="card"><strong>${money(earnings)}</strong><div class="muted">Earning</div></div></div>
-    <div class="card stack"><div class="between"><div class="title">Incoming Bookings</div><button class="btn secondary" onclick="workerSection('bookings')">View</button></div>${workerBookingList(true)}</div>
-  </div>`;
-}
-function workerVerification() {
-  return `<div class="card stack"><div class="title">Verification</div><div class="muted">Zomato-style worker onboarding checklist.</div>${["Phone verified", "ID proof uploaded", "Address proof", "Bank/UPI details", "Skill test"].map((x, i) => `<div class="between"><span>${x}</span><span class="chip ${i < 2 || app.worker.verified ? "good" : "warn"}">${i < 2 || app.worker.verified ? "Done" : "Pending"}</span></div>`).join("")}<button class="btn full" onclick="markVerified()">Mark Demo Verification Done</button></div>`;
-}
-async function markVerified() {
-  const data = await api(`/api/workers/${app.worker.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ verified: true, kycStatus: "Verified" }) });
-  app.worker = data.worker; saveSession(); toast("Verification updated"); workerSection("verification");
-}
-function workerDetails() {
-  return `<div class="card stack"><div class="title">Personal Details</div><div class="field"><label>Name</label><input id="wName" value="${escapeHtml(app.worker.name)}"></div><div class="field"><label>Service</label><select id="wService">${SERVICES.map(s => `<option ${s === app.worker.service ? "selected" : ""}>${s}</option>`).join("")}</select></div><div class="field"><label>Area</label><input id="wArea" value="${escapeHtml(app.worker.area)}"></div><div class="field"><label>Location label</label><input id="wLocation" value="${escapeHtml(app.worker.location?.label || app.worker.area)}"></div><button class="btn full" onclick="saveWorkerDetails()">Save Details</button></div>`;
-}
-async function saveWorkerDetails() {
-  const data = await api(`/api/workers/${app.worker.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: $("wName").value, service: $("wService").value, area: $("wArea").value, locationLabel: $("wLocation").value }) });
-  app.worker = data.worker; saveSession(); toast("Details saved"); workerSection("details");
-}
-function workerBookings() {
-  return `<div class="card stack"><div class="title">Bookings Coming</div><div class="muted">Uber-style job status update. Done karne par customer WhatsApp review link open hoga.</div>${workerBookingList(false)}</div>`;
-}
-function workerBookingList(limit) {
-  const list = limit ? app.bookings.slice(-2).reverse() : [...app.bookings].reverse();
-  if (!list.length) return `<div class="empty">No bookings yet.</div>`;
-  return list.map(b => `<div class="card stack" style="box-shadow:none">
-    <div class="between"><div><strong>${escapeHtml(b.customerName)}</strong><div class="muted">${escapeHtml(b.service)} . ${escapeHtml(b.customerAddress)}</div></div><span class="chip good">${money(b.base)}</span></div>
-    <div class="chips"><span class="chip">${escapeHtml(b.status)}</span><span class="chip">${escapeHtml(b.time || "")}</span></div>
-    <div class="row">${STATUS_FLOW.filter(s => STATUS_FLOW.indexOf(s) > STATUS_FLOW.indexOf(b.status)).slice(0, 2).map(s => `<button class="btn secondary" onclick="setBookingStatus(${b.id}, '${s}')">${s}</button>`).join("")}${b.status !== "Done" ? `<button class="btn warn" onclick="setBookingStatus(${b.id}, 'Done')">Done</button>` : ""}</div>
-  </div>`).join("");
-}
-async function setBookingStatus(id, status) {
-  try {
-    const data = await api(`/api/bookings/${id}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
-    if (data.whatsappUrl) window.open(data.whatsappUrl, "_blank");
-    await loadWorkerDashboard();
-    workerSection("bookings");
-    toast("Status updated");
-  } catch (e) { toast(e.message); }
-}
-
-function reviewUi(bookingId) {
-  return `<div class="card stack"><div class="title">Rate FixIt Worker</div><div class="muted">Select tags and 1 to 5 star review.</div><div class="stars">${[1,2,3,4,5].map(n => `<button class="star" onclick="selectStar(${n})">${n}</button>`).join("")}</div><div class="chips">${["Good behaviour", "Excellent service", "On time", "Clean work", "Fair price"].map(t => `<button class="chip" onclick="this.classList.toggle('good')">${t}</button>`).join("")}</div><div class="field"><label>Note</label><textarea id="reviewNote" rows="3" placeholder="Optional feedback"></textarea></div><button class="btn full" onclick="submitReview(${bookingId})">Submit Review</button></div>`;
-}
-let selectedRating = 5;
-function selectStar(n) { selectedRating = n; document.querySelectorAll(".star").forEach((s, i) => s.classList.toggle("active", i < n)); }
-async function submitReview(bookingId) {
-  const tags = [...document.querySelectorAll(".chip.good")].map(x => x.textContent);
-  await api("/api/reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ bookingId, rating: selectedRating, tags, note: $("reviewNote").value }) });
-  $("reviewContent").innerHTML = `<div class="card empty">Thank you. Your review has been submitted.</div>`;
-}
-function escapeHtml(v) { return String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c])); }
-
-async function init() {
-  await bootstrap();
-  const params = new URLSearchParams(location.search);
-  if (params.get("review")) {
-    show("reviewScreen");
-    $("reviewContent").innerHTML = reviewUi(params.get("review"));
-    selectStar(5);
-    return;
-  }
-  const session = loadSession();
-  app.role = session.role;
-  app.customer = session.customer;
-  app.worker = session.worker;
-  if (app.role === "customer" && app.customer) return enterCustomer();
-  if (app.role === "worker" && app.worker) return enterWorker();
-}
-init().catch(e => toast(e.message));
+const qs=id=>document.getElementById(id), money=v=>"Rs. "+Number(v||0).toLocaleString("en-IN"), esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+let services=[],workers=[],settings={},selected="",currentWorker=null,currentCustomer=JSON.parse(localStorage.fixitCustomer||"{}"),workerPhone=localStorage.fixitWorkerPhone||"",adminKey=localStorage.fixitAdminKey||"",customerBookings=[],reviewBookingId=new URLSearchParams(location.search).get("review");
+async function api(p,o={}){let r=await fetch(p,o),d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"API failed");return d}function headers(admin=false){let h={"Content-Type":"application/json"};if(admin)h["x-api-key"]=adminKey;return h}function toast(m){qs("toast").textContent=m;qs("toast").classList.add("show");setTimeout(()=>qs("toast").classList.remove("show"),2800)}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));qs(id).classList.add("active");["Home","Customer","Worker","Admin"].forEach(n=>qs("tab"+n).classList.toggle("active",n.toLowerCase()==id));if(id=="customer")loadCustomer();if(id=="worker"&&workerPhone)workerDashboard();if(id=="admin"&&adminKey)loadAdmin()}
+async function boot(){let d=await api("/api/bootstrap");services=d.services;workers=d.workers;settings=d.settings;qs("sync").textContent="Live";qs("mWorkers").textContent=workers.length;renderServices();renderAreas();renderWorkers();qs("rService").innerHTML=services.map(s=>`<option>${s}</option>`).join("");fillCustomer();if(reviewBookingId)openReview(reviewBookingId)}boot().catch(e=>toast(e.message));
+function renderServices(){qs("services").innerHTML=["",...services].map(s=>`<button class="chip ${selected==s?"active":""}" onclick="selected='${s}';renderServices();renderWorkers()"><span class="icon">${s?s.slice(0,2).toUpperCase():"ALL"}</span><b>${esc(s||"All Services")}</b><div class="meta">${workers.filter(w=>!s||w.service==s).length} workers</div></button>`).join("")}
+function renderAreas(){qs("area").innerHTML='<option value="">All areas</option>'+[...new Set(workers.map(w=>w.area))].map(a=>`<option>${esc(a)}</option>`).join("")}
+function avatar(w){return w.photoUrl?`<img src="${esc(w.photoUrl)}">`:(w.service||"WK").slice(0,2).toUpperCase()}
+function renderWorkers(){let q=(qs("search").value||"").toLowerCase(),area=qs("area").value;let list=workers.filter(w=>(!selected||w.service==selected)&&(!area||w.area==area)&&[w.name,w.service,w.area,w.exp].join(" ").toLowerCase().includes(q));qs("workerSub").textContent=`${list.length} workers found`;qs("workers").innerHTML=list.length?list.map(w=>{let fee=Math.round(w.charge*(settings.commissionRate||.1)),total=w.charge+fee;return `<article class="card worker"><div class="row"><div class="row"><div class="avatar">${avatar(w)}</div><div><div class="name">${esc(w.name)}</div><div class="meta">${esc(w.service)} . ${esc(w.area)}</div></div></div><span class="tag ${w.status=="Online"?"green":"amber"}">${esc(w.status)}</span></div><div class="tags"><span class="tag green">Verified</span><span class="tag">${w.rating} star</span><span class="tag blue">Location live</span></div><div class="exp">${esc(w.exp)}</div><div class="foot"><div><div class="price">${money(total)}</div><div class="meta">incl. platform fee</div></div><button class="btn primary" ${w.status!="Online"?"disabled":""} onclick="openBooking(${w.id})">Book</button></div></article>`}).join(""):'<div class="empty" style="grid-column:1/-1">No worker found.</div>'}
+function fillCustomer(){qs("cName").value=currentCustomer.name||"";qs("cPhone").value=currentCustomer.phone||"";qs("cAddress").value=currentCustomer.address||"";qs("cCity").value=currentCustomer.city||"Ambikapur";qs("cProfileName").value=currentCustomer.name||"";qs("cProfilePhone").value=currentCustomer.phone||""}
+function custSection(id){document.querySelectorAll(".custSec").forEach(s=>s.style.display="none");qs(id).style.display="block"}function toggleCustMenu(){qs("custMenu").classList.toggle("open")}
+async function customerLogin(fromProfile=false){let c={name:(fromProfile?qs("cProfileName").value:qs("cName").value)||qs("cName").value,phone:(fromProfile?qs("cProfilePhone").value:qs("cPhone").value)||qs("cPhone").value,address:qs("cAddress").value,city:qs("cCity").value,notification:qs("cNotify").checked};let d=await api("/api/customer/login",{method:"POST",headers:headers(),body:JSON.stringify(c)});currentCustomer=d.customer;localStorage.fixitCustomer=JSON.stringify(currentCustomer);fillCustomer();toast("Customer saved");loadCustomer()}
+async function loadCustomer(){fillCustomer();if(!currentCustomer.phone){qs("custBookings").innerHTML='<div class="empty">Login to see bookings.</div>';return}let d=await api("/api/customer/bookings?phone="+currentCustomer.phone);customerBookings=d.bookings;qs("mBookings").textContent=d.bookings.length;qs("custBookings").innerHTML=bookingCards(d.bookings,true)}
+function openBooking(id){currentWorker=workers.find(w=>w.id==id);let fee=Math.round(currentWorker.charge*(settings.commissionRate||.1)),total=currentWorker.charge+fee;qs("bName").value=currentCustomer.name||"";qs("bPhone").value=currentCustomer.phone||"";qs("bAddress").value=currentCustomer.address||"";qs("bookWorker").innerHTML=`<div class="row"><div class="avatar">${avatar(currentWorker)}</div><div><div class="name">${esc(currentWorker.name)}</div><div class="meta">${esc(currentWorker.service)} . ${esc(currentWorker.area)} . ${currentWorker.rating} star</div><div class="meta">Lat ${Number(currentWorker.lat).toFixed(4)}, Lng ${Number(currentWorker.lng).toFixed(4)}</div></div></div>`;qs("sBase").textContent=money(currentWorker.charge);qs("sFee").textContent=money(fee);qs("sTotal").textContent=money(total);qs("rzpBtn").disabled=!settings.razorpayEnabled;qs("bookingModal").classList.add("open")}
+function closeModal(){qs("bookingModal").classList.remove("open")}function customerFromModal(){return{name:qs("bName").value,phone:qs("bPhone").value,address:qs("bAddress").value,city:qs("cCity").value,note:qs("bNote").value}}
+async function book(method){let d=await api("/api/bookings",{method:"POST",headers:headers(),body:JSON.stringify({workerId:currentWorker.id,customer:customerFromModal(),paymentMethod:method})});closeModal();currentCustomer={name:d.booking.customerName,phone:d.booking.customerPhone,address:d.booking.customerAddress,city:d.booking.customerCity};localStorage.fixitCustomer=JSON.stringify(currentCustomer);toast("Booking sent to worker");show("customer")}
+async function payRazorpay(){let total=currentWorker.charge+Math.round(currentWorker.charge*(settings.commissionRate||.1));let o=await api("/api/create-order",{method:"POST",headers:headers(),body:JSON.stringify({amount:total*100,receipt:"fixit_"+Date.now()})});new Razorpay({key:o.key_id,amount:o.amount,currency:o.currency,order_id:o.order_id,name:settings.merchantName||"FixIt",description:currentWorker.service+" booking",handler:async r=>{await api("/api/verify-payment",{method:"POST",headers:headers(),body:JSON.stringify(r)});await book("razorpay")},modal:{ondismiss:()=>toast("Payment cancelled")}}).open()}
+function bookingCards(list,customer=false){if(!list.length)return'<div class="empty">No bookings yet.</div>';return [...list].reverse().map(b=>`<article class="card"><div class="row"><div><div class="name">${esc(b.service)} with ${esc(b.workerName)}</div><div class="meta">${esc(b.customerAddress||"")} . ${esc(b.time||"")}</div><div class="tags"><span class="tag blue">${esc(b.status)}</span><span class="tag">${esc(b.paymentMethod)} / ${esc(b.paymentStatus)}</span></div></div><b>${money(b.total)}</b></div><div class="miniMap"><div class="route"></div><span class="pin" style="left:22%;top:64%"></span><span class="pin worker" style="left:68%;top:38%"></span></div><div class="row" style="margin-top:10px"><a class="btn soft" href="tel:${esc(b.workerPhone)}">Call worker</a>${b.status=="completed"?`<button class="btn primary" onclick="openReview(${b.id})">Review</button>`:""}</div></article>`).join("")}
+async function sendHelp(){let msg=qs("chatInput").value.trim();if(!msg)return;qs("chatBox").innerHTML+=`<div class="chatMsg me">${esc(msg)}</div>`;let d=await api("/api/help/chat",{method:"POST",headers:headers(),body:JSON.stringify({phone:currentCustomer.phone,message:msg})});qs("chatBox").innerHTML+=`<div class="chatMsg">${esc(d.reply)}</div>`;qs("chatInput").value=""}
+async function fileData(input){let f=input.files[0];if(!f)return null;if(f.size>2500000)throw Error("File under 2.5 MB only");return await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res({name:f.name,type:f.type,dataUrl:r.result});r.onerror=()=>rej(Error("File read failed"));r.readAsDataURL(f)})}
+async function workerRegister(){let payload={name:qs("rName").value,phone:qs("rPhone").value,service:qs("rService").value,area:qs("rArea").value,charge:qs("rCharge").value,exp:qs("rExp").value,photo:await fileData(qs("rPhoto")),idProof:await fileData(qs("rId"))};let d=await api("/api/worker/register",{method:"POST",headers:headers(),body:JSON.stringify(payload)});workerPhone=d.application.phone;localStorage.fixitWorkerPhone=workerPhone;toast("Submitted. Admin verification pending.");workerDashboard()}
+async function workerLogin(){workerPhone=qs("wLoginPhone").value;await api("/api/worker/login",{method:"POST",headers:headers(),body:JSON.stringify({phone:workerPhone})});localStorage.fixitWorkerPhone=workerPhone;workerDashboard()}
+async function workerDashboard(){if(!workerPhone)return;let d=await api("/api/worker/dashboard?phone="+workerPhone);let w=d.worker||d.application||{};qs("wJobs").textContent=d.bookings.length;qs("wEarn").textContent=money(d.bookings.filter(b=>b.status=="completed").reduce((s,b)=>s+b.base,0));qs("wRating").textContent=w.rating||"-";qs("wStatus").textContent=w.verificationStatus||w.status||"-";qs("workerProfile").innerHTML=d.worker?`<div class="row"><div><div class="name">${esc(w.name)}</div><div class="meta">${esc(w.service)} . ${esc(w.area)} . ${esc(w.phone)}</div></div><select onchange="updateWorkerStatus(this.value)"><option>${esc(w.status)}</option><option>Online</option><option>Offline</option><option>Busy</option></select></div>`:`<div class="empty">Verification ${esc(w.verificationStatus||"not started")}</div>`;qs("workerSteps").innerHTML=stepsHtml(w);qs("workerBookings").innerHTML=workerBookingHtml(d.bookings)}
+function stepsHtml(w){let verified=w.verificationStatus=="verified";return["Personal details","Documents uploaded","Admin verification","Dashboard active"].map((s,i)=>`<div class="card row"><b>${s}</b><span class="tag ${i<2||verified?"green":"amber"}">${i<2||verified?"Done":"Pending"}</span></div>`).join("")}
+async function updateWorkerStatus(status){await api("/api/worker/profile",{method:"PATCH",headers:headers(),body:JSON.stringify({phone:workerPhone,status})});workerDashboard();boot()}
+function workerBookingHtml(list){if(!list.length)return'<div class="empty">No incoming bookings.</div>';return [...list].reverse().map(b=>`<article class="card"><div class="row"><div><div class="name">${esc(b.customerName)} - ${esc(b.service)}</div><div class="meta">${esc(b.customerAddress)} . ${esc(b.note||"")}</div><div class="tags"><span class="tag blue">${esc(b.status)}</span><span class="tag">${money(b.total)}</span></div></div><a class="btn soft" href="tel:${esc(b.customerPhone)}">Call</a></div><div class="row" style="margin-top:10px"><button class="btn primary" onclick="bookingAction(${b.id},'accept')">Accept</button><button class="btn dark" onclick="bookingAction(${b.id},'start')">On way</button><button class="btn warn" onclick="bookingAction(${b.id},'complete')">Done</button></div></article>`).join("")}
+async function bookingAction(id,act){let d=await api(`/api/bookings/${id}/${act}`,{method:"POST",headers:headers(),body:JSON.stringify({workerPhone})});if(act=="complete"&&d.whatsappReviewLink)window.open(d.whatsappReviewLink,"_blank");toast(act=="complete"?"Completed. WhatsApp review link opened.":"Booking updated");workerDashboard();boot()}
+async function adminLogin(){adminKey=qs("adminKey").value;localStorage.fixitAdminKey=adminKey;await api("/api/admin/login",{method:"POST",headers:headers(true),body:"{}"});loadAdmin()}
+async function loadAdmin(){let d=await api("/api/admin/dashboard",{headers:headers(true)});qs("adminLogin").style.display="none";qs("adminDash").style.display="block";qs("aCustomers").textContent=d.customers.length;qs("aWorkers").textContent=d.workers.length;qs("aPending").textContent=d.workerApplications.filter(a=>a.verificationStatus=="pending").length;qs("aBookings").textContent=d.bookings.length;qs("adminApps").innerHTML=d.workerApplications.length?d.workerApplications.map(a=>`<div class="card row"><div><div class="name">${esc(a.name)}</div><div class="meta">${esc(a.service)} . ${esc(a.phone)} . ${esc(a.verificationStatus)}</div><a href="${esc(a.idUrl)}" target="_blank">View ID</a></div>${a.verificationStatus=="pending"?`<div><button class="btn primary" onclick="reviewApp(${a.id},'verify')">Verify</button> <button class="btn danger" onclick="reviewApp(${a.id},'reject')">Reject</button></div>`:""}</div>`).join(""):'<div class="empty">No applications</div>';qs("adminBookings").innerHTML=bookingCards(d.bookings)}
+async function reviewApp(id,action){await api(`/api/admin/worker-applications/${id}/${action}`,{method:"POST",headers:headers(true),body:JSON.stringify({reason:"Documents not clear"})});toast("Application updated");loadAdmin();boot()}
+function openReview(id){reviewBookingId=id;qs("reviewModal").classList.add("open")}function closeReview(){qs("reviewModal").classList.remove("open")}
+async function submitReview(){let tags=[...document.querySelectorAll('#reviewModal input[type=checkbox]:checked')].map(x=>x.value);await api("/api/reviews",{method:"POST",headers:headers(),body:JSON.stringify({bookingId:reviewBookingId,rating:qs("revStars").value,tags,comment:qs("revComment").value})});toast("Review submitted");closeReview()}
 </script>
 </body>
 </html>
