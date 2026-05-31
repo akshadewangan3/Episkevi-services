@@ -1,15 +1,70 @@
 {
   "workers": [
     {
-      "id": 1779991248566,
-      "name": "yash",
+      "id": 1,
+      "name": "Ramesh Kumar",
       "service": "Electrician",
-      "charge": 6969,
-      "phone": "9301503804",
-      "rating": 4,
-      "exp": "19",
-      "area": "bilaspur",
+      "charge": 300,
+      "phone": "9876543210",
+      "rating": 4.8,
+      "exp": "7 yrs, all wiring and fuse work",
+      "area": "Ambikapur",
       "status": "Available"
+    },
+    {
+      "id": 2,
+      "name": "Suresh Patel",
+      "service": "Plumber",
+      "charge": 250,
+      "phone": "9123456780",
+      "rating": 4.5,
+      "exp": "5 yrs, pipe fitting and leak fixes",
+      "area": "Ambikapur",
+      "status": "Available"
+    },
+    {
+      "id": 3,
+      "name": "Mohan Verma",
+      "service": "Electrician",
+      "charge": 350,
+      "phone": "9988776655",
+      "rating": 4.7,
+      "exp": "10 yrs, commercial and home wiring",
+      "area": "Darima",
+      "status": "Busy"
+    },
+    {
+      "id": 4,
+      "name": "Lakshmi Devi",
+      "service": "Cleaning",
+      "charge": 400,
+      "phone": "9871234560",
+      "rating": 4.9,
+      "exp": "3 yrs, deep cleaning expert",
+      "area": "Ambikapur",
+      "status": "Available"
+    },
+    {
+      "id": 5,
+      "name": "Rajesh Singh",
+      "service": "Carpenter",
+      "charge": 500,
+      "phone": "9765432100",
+      "rating": 4.6,
+      "exp": "8 yrs, furniture and doors",
+      "area": "Ambikapur",
+      "status": "Available"
+    },
+    {
+      "id": 6,
+      "name": "Dinesh Gupta",
+      "service": "AC Repair",
+      "charge": 600,
+      "phone": "9654321098",
+      "rating": 4.4,
+      "exp": "6 yrs, all AC brands",
+      "area": "Ambikapur",
+      "status": "Busy"
     }
   ],
   "bookings": []
