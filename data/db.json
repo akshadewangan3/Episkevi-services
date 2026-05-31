@@ -1,6 +1,9 @@
 {
   "workers": [
     {
+      "verificationStatus": "verified",
+      "photoUrl": "",
+      "idUrl": "",
       "id": 1,
       "name": "Ramesh Kumar",
       "service": "Electrician",
@@ -12,6 +15,9 @@
       "status": "Available"
     },
     {
+      "verificationStatus": "verified",
+      "photoUrl": "",
+      "idUrl": "",
       "id": 2,
       "name": "Suresh Patel",
       "service": "Plumber",
@@ -23,6 +29,9 @@
       "status": "Available"
     },
     {
+      "verificationStatus": "verified",
+      "photoUrl": "",
+      "idUrl": "",
       "id": 3,
       "name": "Mohan Verma",
       "service": "Electrician",
@@ -34,6 +43,9 @@
       "status": "Busy"
     },
     {
+      "verificationStatus": "verified",
+      "photoUrl": "",
+      "idUrl": "",
       "id": 4,
       "name": "Lakshmi Devi",
       "service": "Cleaning",
@@ -45,6 +57,9 @@
       "status": "Available"
     },
     {
+      "verificationStatus": "verified",
+      "photoUrl": "",
+      "idUrl": "",
       "id": 5,
       "name": "Rajesh Singh",
       "service": "Carpenter",
@@ -56,6 +71,9 @@
       "status": "Available"
     },
     {
+      "verificationStatus": "verified",
+      "photoUrl": "",
+      "idUrl": "",
       "id": 6,
       "name": "Dinesh Gupta",
       "service": "AC Repair",
@@ -67,5 +85,6 @@
       "status": "Busy"
     }
   ],
-  "bookings": []
+  "bookings": [],
+  "workerApplications": []
 }
