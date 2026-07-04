@@ -132,6 +132,57 @@ function phone10(value) {
   return String(value || "").replace(/[^\d]/g, "").slice(-10);
 }
 
+// --- Aadhaar number validation (Verhoeff checksum algorithm) ---
+// This is the same check-digit algorithm UIDAI uses to generate real Aadhaar
+// numbers, so it reliably rejects randomly typed / fake 12-digit numbers.
+// NOTE: this only proves the number is a mathematically valid Aadhaar number.
+// It does NOT confirm identity/ownership - real identity confirmation needs
+// UIDAI e-KYC (OTP) via a licensed AUA/KUA provider.
+const VERHOEFF_D = [
+  [0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],
+  [3,4,0,1,2,8,9,5,6,7],[4,0,1,2,3,9,5,6,7,8],[5,9,8,7,6,0,4,3,2,1],
+  [6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],[8,7,6,5,9,3,2,1,0,4],
+  [9,8,7,6,5,4,3,2,1,0]
+];
+const VERHOEFF_P = [
+  [0,1,2,3,4,5,6,7,8,9],[1,5,7,6,2,8,3,0,9,4],[5,8,0,3,7,9,6,1,4,2],
+  [8,9,1,6,0,4,3,5,2,7],[9,4,5,3,1,2,6,8,7,0],[4,2,8,6,5,7,3,9,0,1],
+  [2,7,9,3,8,0,6,4,1,5],[7,0,4,6,9,1,3,2,5,8]
+];
+
+function verhoeffIsValid(numStr) {
+  let c = 0;
+  const digits = numStr.split("").reverse().map(Number);
+  for (let i = 0; i < digits.length; i++) {
+    c = VERHOEFF_D[c][VERHOEFF_P[i % 8][digits[i]]];
+  }
+  return c === 0;
+}
+
+function normalizeAadhaar(value) {
+  return String(value || "").replace(/[^\d]/g, "");
+}
+
+function isValidAadhaarFormat(value) {
+  const num = normalizeAadhaar(value);
+  // Real Aadhaar numbers are 12 digits and never start with 0 or 1.
+  if (!/^[2-9]\d{11}$/.test(num)) return false;
+  return verhoeffIsValid(num);
+}
+
+function maskAadhaar(value) {
+  const num = normalizeAadhaar(value);
+  if (num.length !== 12) return "";
+  return `XXXX-XXXX-${num.slice(-4)}`;
+}
+
+// One-way hash used only to detect the same Aadhaar being reused across
+// different phone numbers/accounts. The plain 12-digit number is never
+// stored on disk - only this hash and the masked display value are.
+function aadhaarHash(value) {
+  return crypto.createHash("sha256").update(normalizeAadhaar(value)).digest("hex");
+}
+
 function cleanText(value, fallback = "", limit = 120) {
   return String(value || fallback).trim().slice(0, limit);
 }
@@ -182,6 +233,8 @@ function sanitizeWorkerInput(input = {}, status = "pending") {
     verificationStatus: status,
     photoUrl: cleanText(input.photoUrl, "", 240),
     idUrl: cleanText(input.idUrl, "", 240),
+    aadhaar: cleanText(input.aadhaar, "", 20),
+    aadhaarHash: cleanText(input.aadhaarHash, "", 80),
     lat: Number(input.lat || (23.1226 + Math.random() / 30)),
     lng: Number(input.lng || (83.1956 + Math.random() / 30))
   };
@@ -189,9 +242,14 @@ function sanitizeWorkerInput(input = {}, status = "pending") {
 
 function makeWorkerApplication(input = {}) {
   if (!input.photo?.dataUrl || !input.idProof?.dataUrl) throw new Error("Worker photo and ID proof are required");
+  if (!isValidAadhaarFormat(input.aadhaar)) {
+    throw new Error("Invalid Aadhaar number. Please enter a correct 12 digit Aadhaar number.");
+  }
   return {
     ...sanitizeWorkerInput(input, "pending"),
     status: "Pending",
+    aadhaar: maskAadhaar(input.aadhaar),
+    aadhaarHash: aadhaarHash(input.aadhaar),
     photoUrl: saveUpload(input.photo, "worker-photo"),
     idUrl: saveUpload(input.idProof, "worker-id"),
     steps: {
@@ -404,10 +462,21 @@ async function handleApi(req, res) {
     const phone = phone10(body.phone);
     if (db.workerApplications.some(a => a.phone === phone && a.verificationStatus === "pending")) return sendError(res, 409, "Pending application already exists");
     if (db.workers.some(w => w.phone === phone && w.verificationStatus === "verified")) return sendError(res, 409, "Worker already verified. Login with phone.");
+    if (!isValidAadhaarFormat(body.aadhaar)) return sendError(res, 400, "Invalid Aadhaar number. Please enter a correct 12 digit Aadhaar number.");
+    const incomingHash = aadhaarHash(body.aadhaar);
+    const aadhaarInUse = db.workers.some(w => w.aadhaarHash === incomingHash && w.phone !== phone)
+      || db.workerApplications.some(a => a.aadhaarHash === incomingHash && a.phone !== phone && a.verificationStatus !== "rejected");
+    if (aadhaarInUse) return sendError(res, 409, "This Aadhaar number is already registered with a different account.");
     const application = makeWorkerApplication(body);
+    // ID proof (Aadhaar) uploaded successfully -> auto-verify, no admin action needed.
+    application.verificationStatus = "verified";
+    application.status = "Verified";
+    application.reviewedAt = new Date().toISOString();
     db.workerApplications.push(application);
+    const worker = sanitizeWorkerInput({ ...application, id: Date.now(), status: "Online" }, "verified");
+    db.workers.push(worker);
     writeDb(db);
-    return sendJson(res, 201, { application });
+    return sendJson(res, 201, { application, worker });
   }
 
   if (req.method === "POST" && url.pathname === "/api/worker/login") {
