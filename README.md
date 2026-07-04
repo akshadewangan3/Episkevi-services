@@ -1,106 +1,53 @@
-# FixIt Live Services
+# FixIt Admin Panel (standalone)
 
-This is a publishable FixIt marketplace website with a Node.js backend API, customer login, worker login, worker verification, incoming booking workflow, separate admin page, UPI booking, Razorpay Checkout support, WhatsApp review links, and AI-style help chat.
+This is now a **separate mini app**, not part of your public FixIt website.
+Your customers and workers can no longer reach the admin panel through your
+main site (the `/admin` page has been removed from `server.js`). You run
+this admin panel on its own, wherever you like - your own PC, a different
+port, or a completely different host/domain than your public site.
 
-## Main flows
+It does not store any data itself. It is just the admin screen; when you
+open it, you type in the web address of your live FixIt website and your
+admin API key, and it talks to that website's private admin API directly
+from your browser.
 
-- Customers can search verified workers and book home services.
-- Customers get a panel with Home, Profile, Address, App Settings, and Help & Support.
-- Workers can register themselves with photo and ID proof, then login after verification.
-- Workers get verification steps, personal details, dashboard stats, and incoming bookings.
-- Admin can verify or reject worker applications from `public/admin.html` or `/admin`.
-- Only verified workers become visible to customers, and customer search shows anonymous service/price options instead of worker identity.
-- Customer location is used to keep booking and worker accept actions inside a 50 km service radius.
-- Admin can track customers, bookings, payment status, worker fleet, reviews, help tickets, and application queue.
-- When a worker marks a job complete, the app opens a WhatsApp review message link for the customer.
-- Customer reviews support 1-5 stars and tags like Good behaviour and Excellent service.
-
-## Run locally
+## Run it locally
 
 ```powershell
+cd admin-panel
 npm start
 ```
 
 Open:
 
 ```text
-http://localhost:3000
+http://localhost:4000
 ```
 
-## Private admin API
+(Change the port with `$env:ADMIN_PORT="5000"` before `npm start` if you
+want a different one.)
 
-Set a secret key before publishing:
+## Using it
 
-```powershell
-$env:FIXIT_API_KEY="your-strong-secret"
-npm start
-```
+1. Open the admin panel (locally or wherever you hosted it).
+2. In "Your FixIt site URL", enter the full web address of your live FixIt
+   site, for example `https://your-fixit-site.onrender.com` (no trailing
+   slash). Click "Save site URL".
+3. Enter your `FIXIT_API_KEY` (the same secret key you set on the main
+   site's server) and click "Open console".
 
-**The admin panel is no longer part of this website.** It has moved to its
-own standalone mini-app in the `admin-panel` folder, which you run
-separately (a different PC, port, or host) - see `admin-panel/README.md`.
-It calls this site's private `/api/admin/*` endpoints using the same
-`FIXIT_API_KEY` you set here. This site only exposes those admin endpoints
-over the network; it does not serve any admin HTML page itself anymore.
+## Hosting it somewhere else entirely
 
-Admin also uses this key to verify worker applications.
+Because this is just static HTML + a tiny Node static file server, you can
+deploy the `admin-panel` folder on its own to any Node host (Render,
+Railway, Fly.io, a VPS, or even your own laptop) completely separately
+from your main FixIt website. As long as you can reach your main site's
+URL from wherever you run this, the admin panel will work.
 
-## Optional payment settings
+## Important: keep this URL private
 
-```powershell
-$env:FIXIT_UPI_ID="yourupi@bank"
-$env:FIXIT_MERCHANT_NAME="FixIt"
-```
-
-## Razorpay setup
-
-Create API keys in your Razorpay Dashboard and set them before starting the server:
-
-```powershell
-$env:RAZORPAY_KEY_ID="rzp_test_or_live_key"
-$env:RAZORPAY_KEY_SECRET="your_razorpay_secret"
-npm start
-```
-
-Razorpay payments use the standard Checkout flow:
-
-1. The server creates a Razorpay order.
-2. The customer pays in Razorpay Checkout.
-3. The server verifies the returned signature.
-4. The booking is saved only after successful verification.
-
-If Razorpay keys are not configured, the Razorpay button is disabled and UPI/cash booking still works.
-
-## Publish
-
-Upload this folder to a Node host such as Render, Railway, Fly.io, or any VPS.
-
-Required start command:
-
-```text
-npm start
-```
-
-Required environment variable:
-
-```text
-FIXIT_API_KEY=your-strong-secret
-```
-
-Optional environment variables:
-
-```text
-FIXIT_UPI_ID=yourupi@bank
-FIXIT_MERCHANT_NAME=FixIt
-RAZORPAY_KEY_ID=rzp_test_or_live_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
-PORT=3000
-```
-
-Data is stored in `data/db.json`. For a high-traffic production app, replace this file storage with a managed database.
-
-Uploaded worker photos and ID files are stored in `public/uploads`. In production, use cloud storage for these documents and protect ID files behind admin authentication.
-
-## Important production note
-
-The WhatsApp review message is opened as a WhatsApp link after the worker marks the job complete. To send WhatsApp messages automatically without a click, you need the official WhatsApp Business API and an approved message template.
+Do not link this admin panel from your public website or share the URL
+with customers/workers. Anyone who has both this panel's address AND your
+`FIXIT_API_KEY` can manage your bookings and workers, so treat the key
+like a password and only share the admin panel's address with people you
+trust to manage the business.

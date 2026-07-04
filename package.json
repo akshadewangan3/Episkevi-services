@@ -1,7 +1,7 @@
 {
-  "name": "fixit-live-services",
+  "name": "fixit-admin-panel",
   "version": "1.0.0",
-  "description": "FixIt home services app with a private Node API.",
+  "description": "Standalone FixIt admin panel. Runs separately from the main FixIt website.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
