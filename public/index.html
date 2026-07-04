@@ -165,7 +165,6 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
     <button id="tabLanding" class="active" onclick="show('landing')">Dispatch</button>
     <button id="tabCustomer" onclick="show('customer')">Customer</button>
     <button id="tabWorker" onclick="show('worker')">Worker</button>
-    <button onclick="location.href='admin.html'">Admin</button>
   </nav>
   <div class="sync"><span id="syncDot" class="dot"></span><span id="sync">Connecting</span></div>
 </div></header>
@@ -174,8 +173,8 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
 <main id="landing" class="screen active"><div class="wrap">
   <section class="dispatchHero">
     <div class="eyebrow">FixIt Dispatch · Ambikapur</div>
-    <h1>Three desks. One dispatch board.</h1>
-    <p class="lead">Every job on FixIt moves through three desks: a customer raises it, a verified worker runs it, and admin keeps the books straight. Pick your desk to open its console.</p>
+    <h1>Two desks. One dispatch board.</h1>
+    <p class="lead">Every job on FixIt moves through two desks: a customer raises it, and a verified worker runs it. Pick your desk to open its console.</p>
     <div class="liveStrip">
       <div><strong id="mWorkers">0</strong><span>Workers on the board</span></div>
       <div><strong id="mOnline">0</strong><span>Online right now</span></div>
@@ -206,18 +205,6 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
         <span style="height:80%"></span><span style="height:45%"></span><span style="height:100%"></span><span style="height:60%"></span><span style="height:30%"></span><span style="height:75%"></span><span style="height:50%"></span><span style="height:90%"></span><span style="height:40%"></span><span style="height:65%"></span>
       </div>
       <div class="go">Open worker app <em>&rarr;</em></div>
-    </article>
-
-    <article class="ticket adm" onclick="location.href='admin.html'">
-      <div class="stamp">ADMIN<br>FILE</div>
-      <div class="tIcon">03</div>
-      <span class="code">TICKET · ADMIN</span>
-      <h3>Run the board</h3>
-      <p>Verify new worker applications, watch every worker's live position on one map, and keep an eye on bookings, payouts and reviews.</p>
-      <div class="barcode">
-        <span style="height:55%"></span><span style="height:90%"></span><span style="height:35%"></span><span style="height:70%"></span><span style="height:100%"></span><span style="height:45%"></span><span style="height:60%"></span><span style="height:80%"></span><span style="height:30%"></span><span style="height:95%"></span>
-      </div>
-      <div class="go">Open admin.html <em>&rarr;</em></div>
     </article>
   </div>
 
@@ -322,28 +309,6 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
   </section>
 </div></main>
 
-<!-- ============ ADMIN ============ -->
-<main id="admin" class="screen"><div class="wrap">
-  <section class="panel" id="adminLogin">
-    <div class="head"><div><h2 class="title">Admin desk</h2><div class="sub">Enter the admin API key to open the console.</div></div></div>
-    <div class="field"><label>Admin API key</label><input id="adminKey" type="password"></div>
-    <button class="btn dark" onclick="adminLogin()">Open console</button>
-  </section>
-  <div id="adminDash" style="display:none">
-    <section class="panel"><div class="statusLine">
-      <div class="stat"><strong id="aCustomers">0</strong><span>Customers</span></div>
-      <div class="stat"><strong id="aWorkers">0</strong><span>Workers</span></div>
-      <div class="stat"><strong id="aPending">0</strong><span>Pending verification</span></div>
-      <div class="stat"><strong id="aBookings">0</strong><span>Bookings</span></div>
-    </div></section>
-    <section class="panel"><div class="head"><div><h2 class="title">Live worker map</h2><div class="sub">Every worker's current position. Green = online, amber = busy, grey = offline.</div></div></div>
-      <div id="adminMap" class="mapBox"></div>
-    </section>
-    <section class="panel"><div class="head"><div><h2 class="title">Worker applications</h2></div></div><div id="adminApps" class="list"></div></section>
-    <section class="panel"><div class="head"><div><h2 class="title">Bookings</h2></div></div><div id="adminBookings" class="list"></div></section>
-  </div>
-</div></main>
-
 <!-- ============ MODALS ============ -->
 <div id="bookingModal" class="modalCover"><div class="modal"><div class="modalHead"><h2 class="title">Confirm booking</h2><button class="btn soft" onclick="closeModal()">Close</button></div>
   <div class="modalBody grid2">
@@ -406,24 +371,22 @@ const distanceKm=(a,b)=>{
 let services=[],workers=[],settings={},selected="",currentWorker=null;
 let currentCustomer=JSON.parse(localStorage.fixitCustomer||"{}");
 let workerPhone=localStorage.fixitWorkerPhone||"";
-let adminKey=localStorage.fixitAdminKey||"";
 let customerBookings=[],reviewBookingId=new URLSearchParams(location.search).get("review");
 let customerGeo=JSON.parse(localStorage.fixitCustomerGeo||"null");
 let bookingGeo=null,shareWatchId=null,trackTimer=null,trackMapObj=null,trackMarkers={};
-let workerMapObj=null,workerMapMarker=null,adminMapObj=null,adminMapMarkers={};
+let workerMapObj=null,workerMapMarker=null;
 
 async function api(p,o={}){let r=await fetch(p,o),d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"API failed");return d}
-function headers(admin=false){let h={"Content-Type":"application/json"};if(admin)h["x-api-key"]=adminKey;return h}
+function headers(){return{"Content-Type":"application/json"}}
 function toast(m){qs("toast").textContent=m;qs("toast").classList.add("show");setTimeout(()=>qs("toast").classList.remove("show"),2800)}
 window.addEventListener("unhandledrejection",e=>{toast((e.reason&&e.reason.message)||"Something went wrong. Please try again.");e.preventDefault();});
 
 function show(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   qs(id).classList.add("active");
-  ["Landing","Customer","Worker","Admin"].forEach(n=>{let t=qs("tab"+n);if(t)t.classList.toggle("active",n.toLowerCase()==id)});
+  ["Landing","Customer","Worker"].forEach(n=>{let t=qs("tab"+n);if(t)t.classList.toggle("active",n.toLowerCase()==id)});
   if(id=="customer")loadCustomer();
   if(id=="worker"&&workerPhone)workerDashboard();
-  if(id=="admin"&&adminKey)loadAdmin();
 }
 
 async function boot(){
@@ -699,48 +662,6 @@ async function sendHelp(){
   let d=await api("/api/help/chat",{method:"POST",headers:headers(),body:JSON.stringify({phone:currentCustomer.phone,message:msg})});
   qs("chatBox").innerHTML+=`<div class="chatMsg">${esc(d.reply)}</div>`;
   qs("chatInput").value="";qs("chatBox").scrollTop=qs("chatBox").scrollHeight;
-}
-
-/* ---- admin ---- */
-async function adminLogin(){
-  adminKey=qs("adminKey").value;localStorage.fixitAdminKey=adminKey;
-  await api("/api/admin/login",{method:"POST",headers:headers(true),body:"{}"});
-  loadAdmin();
-}
-async function loadAdmin(){
-  let d=await api("/api/admin/dashboard",{headers:headers(true)});
-  qs("adminLogin").style.display="none";qs("adminDash").style.display="block";
-  qs("aCustomers").textContent=d.customers.length;qs("aWorkers").textContent=d.workers.length;
-  qs("aPending").textContent=d.workerApplications.filter(a=>a.verificationStatus=="pending").length;
-  qs("aBookings").textContent=d.bookings.length;
-  qs("adminApps").innerHTML=d.workerApplications.length?d.workerApplications.map(a=>`<div class="card row"><div><div class="name">${esc(a.name)}</div><div class="meta">${esc(a.service)} · ${esc(a.phone)} · ${esc(a.verificationStatus)}</div><a href="${esc(a.idUrl)}" target="_blank">View ID</a></div>${a.verificationStatus=="pending"?`<div><button class="btn primary" onclick="reviewApp(${a.id},'verify')">Verify</button> <button class="btn danger" onclick="reviewApp(${a.id},'reject')">Reject</button></div>`:""}</div>`).join(""):'<div class="empty">No applications</div>';
-  qs("adminBookings").innerHTML=bookingCards(d.bookings);
-  drawAdminMap(d.workers);
-}
-async function reviewApp(id,action){
-  await api(`/api/admin/worker-applications/${id}/${action}`,{method:"POST",headers:headers(true),body:JSON.stringify({reason:"Documents not clear"})});
-  toast("Application updated");loadAdmin();boot();
-}
-function drawAdminMap(list){
-  if(!adminMapObj){
-    adminMapObj=L.map("adminMap").setView([AMBI.lat,AMBI.lng],12);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap"}).addTo(adminMapObj);
-  }
-  setTimeout(()=>adminMapObj.invalidateSize(),80);
-  let seen=new Set();
-  list.forEach(w=>{
-    if(w.lat==null||w.lng==null)return;
-    seen.add(w.id);
-    let cls=w.status=="Online"?"green":w.status=="Busy"?"amber":"grey";
-    let color=w.status=="Online"?"#0f7a6c":w.status=="Busy"?"#f2a71b":"#9aa4ad";
-    let html=`<div style="background:${color};color:#fff;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.3);font-size:11px;font-weight:800">${esc((w.name||"?").slice(0,1))}</div>`;
-    let icon=L.divIcon({className:"",html,iconSize:[28,28],iconAnchor:[14,14]});
-    if(adminMapMarkers[w.id]){adminMapMarkers[w.id].setLatLng([w.lat,w.lng]).setIcon(icon)}
-    else{
-      adminMapMarkers[w.id]=L.marker([w.lat,w.lng],{icon}).addTo(adminMapObj).bindPopup(`<b>${esc(w.name)}</b><br>${esc(w.service)} · ${esc(w.status)}`);
-    }
-  });
-  Object.keys(adminMapMarkers).forEach(id=>{if(!seen.has(Number(id))){adminMapObj.removeLayer(adminMapMarkers[id]);delete adminMapMarkers[id]}});
 }
 
 /* ---- reviews ---- */
