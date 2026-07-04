@@ -296,7 +296,8 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
         <div class="field"><label>Charge</label><input id="rCharge" type="number" placeholder="300"></div>
         <div class="field"><label>Experience</label><textarea id="rExp"></textarea></div>
         <div class="field"><label>Photo</label><input id="rPhoto" type="file" accept="image/png,image/jpeg,image/webp"></div>
-        <div class="field"><label>ID proof</label><input id="rId" type="file" accept="image/png,image/jpeg,image/webp,application/pdf"></div>
+        <div class="field"><label>Aadhaar number</label><input id="rAadhaar" maxlength="12" inputmode="numeric" placeholder="12 digit Aadhaar number"></div>
+        <div class="field"><label>ID proof (Aadhaar card photo/PDF)</label><input id="rId" type="file" accept="image/png,image/jpeg,image/webp,application/pdf"></div>
         <button class="btn primary" onclick="workerRegister()">Submit for verification</button>
       </div>
       <div>
@@ -584,10 +585,10 @@ async function fileData(input){
   return await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res({name:f.name,type:f.type,dataUrl:r.result});r.onerror=()=>rej(Error("File read failed"));r.readAsDataURL(f)});
 }
 async function workerRegister(){
-  let payload={name:qs("rName").value,phone:qs("rPhone").value,service:qs("rService").value,area:qs("rArea").value,charge:qs("rCharge").value,exp:qs("rExp").value,photo:await fileData(qs("rPhoto")),idProof:await fileData(qs("rId"))};
+  let payload={name:qs("rName").value,phone:qs("rPhone").value,service:qs("rService").value,area:qs("rArea").value,charge:qs("rCharge").value,exp:qs("rExp").value,aadhaar:qs("rAadhaar").value,photo:await fileData(qs("rPhoto")),idProof:await fileData(qs("rId"))};
   let d=await api("/api/worker/register",{method:"POST",headers:headers(),body:JSON.stringify(payload)});
   workerPhone=d.application.phone;localStorage.fixitWorkerPhone=workerPhone;
-  toast("Submitted. Admin verification pending.");workerDashboard();
+  toast("ID verified. You are now Online.");workerDashboard();
 }
 async function workerLogin(){
   workerPhone=qs("wLoginPhone").value;
