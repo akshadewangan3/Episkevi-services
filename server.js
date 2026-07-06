@@ -31,6 +31,9 @@ const MAX_SERVICE_RADIUS_KM = 50;
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || "";
 const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "";
 const OTP_TTL_MS = 5 * 60 * 1000;
+const SMS_WEBHOOK_URL = process.env.FIXIT_SMS_WEBHOOK_URL || "";
+const SMS_API_KEY = process.env.FIXIT_SMS_API_KEY || "";
+const SMS_SENDER_ID = process.env.FIXIT_SMS_SENDER_ID || "FIXIT";
 
 const services = ["Electrician", "Plumber", "Carpenter", "AC Repair", "Cleaning"];
 const otpRequests = new Map();
@@ -187,6 +190,53 @@ function requireOtpToken(scope, phone, token) {
   const record = otpTokens.get(String(token || ""));
   if (!record || record.scope !== scope || record.phone !== phone) throw new Error("OTP verification required before login");
   otpTokens.delete(String(token));
+}
+
+function postJsonUrl(targetUrl, body, extraHeaders = {}) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(targetUrl);
+    const transport = parsedUrl.protocol === "https:" ? https : http;
+    const payload = JSON.stringify(body);
+    const req = transport.request({
+      method: "POST",
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || undefined,
+      path: `${parsedUrl.pathname}${parsedUrl.search}`,
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(payload),
+        ...extraHeaders
+      }
+    }, res => {
+      let raw = "";
+      res.on("data", chunk => raw += chunk);
+      res.on("end", () => {
+        let parsed = {};
+        try { parsed = raw ? JSON.parse(raw) : {}; } catch { parsed = { raw }; }
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          return reject(new Error(parsed.error || parsed.message || `SMS gateway failed with status ${res.statusCode}`));
+        }
+        resolve(parsed);
+      });
+    });
+    req.on("error", reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
+async function sendOtpSms(phone, otp) {
+  if (!SMS_WEBHOOK_URL) {
+    throw new Error("SMS gateway not configured. Add FIXIT_SMS_WEBHOOK_URL in .env to send OTP by SMS.");
+  }
+  const message = `Your FixIt OTP is ${otp}. It is valid for 5 minutes.`;
+  const headers = SMS_API_KEY ? { Authorization: `Bearer ${SMS_API_KEY}` } : {};
+  await postJsonUrl(SMS_WEBHOOK_URL, {
+    phone: `91${phone}`,
+    otp,
+    message,
+    senderId: SMS_SENDER_ID
+  }, headers);
 }
 
 function cleanText(value, fallback = "", limit = 120) {
@@ -448,14 +498,14 @@ async function handleApi(req, res) {
     const phone = phone10(body.phone);
     try {
       const otp = createOtp(scope, phone);
-      console.log(`FixIt OTP for ${scope} ${phone}: ${otp}`);
+      await sendOtpSms(phone, otp);
       return sendJson(res, 200, {
         ok: true,
-        message: "OTP sent. Demo OTP is shown for local testing.",
-        demoOtp: otp,
+        message: "OTP sent by SMS.",
         expiresInSeconds: OTP_TTL_MS / 1000
       });
     } catch (error) {
+      otpRequests.delete(otpKey(scope, phone));
       return sendError(res, 400, error.message);
     }
   }
