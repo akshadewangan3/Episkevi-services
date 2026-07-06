@@ -126,6 +126,11 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
 .hamb{display:none}
 .toast{position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:200;display:none;max-width:min(92vw,580px);border-radius:999px;background:var(--navy);color:#fff;padding:12px 18px;font-weight:800;box-shadow:var(--shadow)}
 .toast.show{display:block}
+.errorPop{position:fixed;inset:0;z-index:260;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(9,13,18,.58)}
+.errorPop.open{display:flex}
+.errorBox{width:min(440px,100%);border-radius:8px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:22px}
+.errorBox h3{margin:0 0 8px;font-size:24px;color:var(--red)}
+.errorBox p{margin:0 0 18px;color:var(--muted);line-height:1.5;font-weight:700}
 
 /* live map + tracking */
 .mapBox{height:320px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
@@ -159,12 +164,14 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
 </head>
 <body>
 <div id="toast" class="toast"></div>
+<div id="errorPop" class="errorPop"><div class="errorBox"><h3>Check details</h3><p id="errorMsg">Something went wrong.</p><button class="btn danger" onclick="closeError()">OK</button></div></div>
 <header class="top"><div class="topin">
   <div class="brand" onclick="show('landing')"><span class="mark">FI</span>FixIt</div>
   <nav class="tabs">
     <button id="tabLanding" class="active" onclick="show('landing')">Dispatch</button>
     <button id="tabCustomer" onclick="show('customer')">Customer</button>
     <button id="tabWorker" onclick="show('worker')">Worker</button>
+    <button onclick="location.href='admin.html'">Admin</button>
   </nav>
   <div class="sync"><span id="syncDot" class="dot"></span><span id="sync">Connecting</span></div>
 </div></header>
@@ -173,8 +180,8 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
 <main id="landing" class="screen active"><div class="wrap">
   <section class="dispatchHero">
     <div class="eyebrow">FixIt Dispatch · Ambikapur</div>
-    <h1>Two desks. One dispatch board.</h1>
-    <p class="lead">Every job on FixIt moves through two desks: a customer raises it, and a verified worker runs it. Pick your desk to open its console.</p>
+    <h1>Three desks. One dispatch board.</h1>
+    <p class="lead">Every job on FixIt moves through three desks: a customer raises it, a verified worker runs it, and admin keeps the books straight. Pick your desk to open its console.</p>
     <div class="liveStrip">
       <div><strong id="mWorkers">0</strong><span>Workers on the board</span></div>
       <div><strong id="mOnline">0</strong><span>Online right now</span></div>
@@ -206,6 +213,18 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
       </div>
       <div class="go">Open worker app <em>&rarr;</em></div>
     </article>
+
+    <article class="ticket adm" onclick="location.href='admin.html'">
+      <div class="stamp">ADMIN<br>FILE</div>
+      <div class="tIcon">03</div>
+      <span class="code">TICKET · ADMIN</span>
+      <h3>Run the board</h3>
+      <p>Verify new worker applications, watch every worker's live position on one map, and keep an eye on bookings, payouts and reviews.</p>
+      <div class="barcode">
+        <span style="height:55%"></span><span style="height:90%"></span><span style="height:35%"></span><span style="height:70%"></span><span style="height:100%"></span><span style="height:45%"></span><span style="height:60%"></span><span style="height:80%"></span><span style="height:30%"></span><span style="height:95%"></span>
+      </div>
+      <div class="go">Open admin.html <em>&rarr;</em></div>
+    </article>
   </div>
 
   <section class="panel"><div class="head"><div><h2 class="title">Who's on the board right now</h2><div class="sub">A quick look before you pick a desk. Book from the Customer desk.</div></div></div><div id="workersPreview" class="grid3"></div></section>
@@ -227,6 +246,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
     <div id="custBrowse" class="custSec">
       <div class="field"><label>Name</label><input id="cName" placeholder="Your name"></div>
       <div class="field"><label>Phone</label><input id="cPhone" maxlength="10" placeholder="10 digit phone"></div>
+      <div class="row"><button class="btn soft" onclick="requestCustomerOtp()">Send OTP</button><input id="cOtp" maxlength="6" placeholder="Enter OTP" style="min-height:43px;border:1px solid var(--line);border-radius:7px;padding:0 12px;flex:1"></div>
       <button class="btn primary" onclick="customerLogin()">Login / Save</button>
       <div class="panel" style="padding:0;border:0;box-shadow:none;margin-top:18px">
         <div class="head"><div><h3 class="title" style="font-size:20px">Services</h3></div></div>
@@ -249,6 +269,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
     <div id="custProfile" class="custSec" style="display:none">
       <div class="field"><label>Name</label><input id="cProfileName"></div>
       <div class="field"><label>Phone</label><input id="cProfilePhone" maxlength="10"></div>
+      <div class="row"><button class="btn soft" onclick="requestCustomerOtp(true)">Send OTP</button><input id="cProfileOtp" maxlength="6" placeholder="Enter OTP" style="min-height:43px;border:1px solid var(--line);border-radius:7px;padding:0 12px;flex:1"></div>
       <button class="btn primary" onclick="customerLogin(true)">Update profile</button>
     </div>
     <div id="custAddress" class="custSec" style="display:none">
@@ -273,18 +294,19 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
       <div>
         <h3>Login</h3>
         <div class="field"><label>Worker phone</label><input id="wLoginPhone" maxlength="10"></div>
+        <div class="row"><button class="btn soft" onclick="requestWorkerOtp()">Send OTP</button><input id="wOtp" maxlength="6" placeholder="Enter OTP" style="min-height:43px;border:1px solid var(--line);border-radius:7px;padding:0 12px;flex:1"></div>
         <div class="row"><button class="btn dark" onclick="workerLogin()">Login</button><button class="btn soft" onclick="workerLogout()">Logout</button></div>
         <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
         <h3>New worker registration</h3>
         <div class="field"><label>Name</label><input id="rName"></div>
         <div class="field"><label>Phone</label><input id="rPhone" maxlength="10"></div>
+        <div class="field"><label>Aadhaar number</label><input id="rAadhaar" maxlength="12" placeholder="12 digit Aadhaar"></div>
         <div class="field"><label>Service</label><select id="rService"></select></div>
         <div class="field"><label>Area</label><input id="rArea" value="Ambikapur"></div>
         <div class="field"><label>Charge</label><input id="rCharge" type="number" placeholder="300"></div>
         <div class="field"><label>Experience</label><textarea id="rExp"></textarea></div>
         <div class="field"><label>Photo</label><input id="rPhoto" type="file" accept="image/png,image/jpeg,image/webp"></div>
-        <div class="field"><label>Aadhaar number</label><input id="rAadhaar" maxlength="12" inputmode="numeric" placeholder="12 digit Aadhaar number"></div>
-        <div class="field"><label>ID proof (Aadhaar card photo/PDF)</label><input id="rId" type="file" accept="image/png,image/jpeg,image/webp,application/pdf"></div>
+        <div class="field"><label>ID proof</label><input id="rId" type="file" accept="image/png,image/jpeg,image/webp,application/pdf"></div>
         <button class="btn primary" onclick="workerRegister()">Submit for verification</button>
       </div>
       <div>
@@ -307,6 +329,28 @@ h1,h2,h3{font-family:var(--display);letter-spacing:.01em}
       </div>
     </div>
   </section>
+</div></main>
+
+<!-- ============ ADMIN ============ -->
+<main id="admin" class="screen"><div class="wrap">
+  <section class="panel" id="adminLogin">
+    <div class="head"><div><h2 class="title">Admin desk</h2><div class="sub">Enter the admin API key to open the console.</div></div></div>
+    <div class="field"><label>Admin API key</label><input id="adminKey" type="password"></div>
+    <button class="btn dark" onclick="adminLogin()">Open console</button>
+  </section>
+  <div id="adminDash" style="display:none">
+    <section class="panel"><div class="statusLine">
+      <div class="stat"><strong id="aCustomers">0</strong><span>Customers</span></div>
+      <div class="stat"><strong id="aWorkers">0</strong><span>Workers</span></div>
+      <div class="stat"><strong id="aPending">0</strong><span>Pending verification</span></div>
+      <div class="stat"><strong id="aBookings">0</strong><span>Bookings</span></div>
+    </div></section>
+    <section class="panel"><div class="head"><div><h2 class="title">Live worker map</h2><div class="sub">Every worker's current position. Green = online, amber = busy, grey = offline.</div></div></div>
+      <div id="adminMap" class="mapBox"></div>
+    </section>
+    <section class="panel"><div class="head"><div><h2 class="title">Worker applications</h2></div></div><div id="adminApps" class="list"></div></section>
+    <section class="panel"><div class="head"><div><h2 class="title">Bookings</h2></div></div><div id="adminBookings" class="list"></div></section>
+  </div>
 </div></main>
 
 <!-- ============ MODALS ============ -->
@@ -371,22 +415,36 @@ const distanceKm=(a,b)=>{
 let services=[],workers=[],settings={},selected="",currentWorker=null;
 let currentCustomer=JSON.parse(localStorage.fixitCustomer||"{}");
 let workerPhone=localStorage.fixitWorkerPhone||"";
+let adminKey=localStorage.fixitAdminKey||"";
 let customerBookings=[],reviewBookingId=new URLSearchParams(location.search).get("review");
 let customerGeo=JSON.parse(localStorage.fixitCustomerGeo||"null");
 let bookingGeo=null,shareWatchId=null,trackTimer=null,trackMapObj=null,trackMarkers={};
-let workerMapObj=null,workerMapMarker=null;
+let workerMapObj=null,workerMapMarker=null,adminMapObj=null,adminMapMarkers={};
+let customerOtpToken="",workerOtpToken="";
 
-async function api(p,o={}){let r=await fetch(p,o),d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"API failed");return d}
-function headers(){return{"Content-Type":"application/json"}}
+async function api(p,o={}){
+  let r=await fetch(p,o),d=await r.json().catch(()=>({}));
+  if(!r.ok){showError(d.error||"API failed");throw Error(d.error||"API failed")}
+  return d;
+}
+function headers(admin=false){let h={"Content-Type":"application/json"};if(admin)h["x-api-key"]=adminKey;return h}
 function toast(m){qs("toast").textContent=m;qs("toast").classList.add("show");setTimeout(()=>qs("toast").classList.remove("show"),2800)}
-window.addEventListener("unhandledrejection",e=>{toast((e.reason&&e.reason.message)||"Something went wrong. Please try again.");e.preventDefault();});
+function showError(m){qs("errorMsg").textContent=m;qs("errorPop").classList.add("open")}
+function closeError(){qs("errorPop").classList.remove("open")}
+function digits(v){return String(v||"").replace(/[^\d]/g,"")}
+function requirePhone(v){let p=digits(v);if(p.length!==10){showError("Phone number 10 digit ka hona chahiye.");throw Error("Invalid phone")}return p}
+function requireOtp(v){let o=digits(v);if(o.length!==6){showError("6 digit OTP daaliye.");throw Error("Invalid OTP")}return o}
+function requireAadhaar(v){let a=digits(v);if(a.length!==12||/^(\d)\1{11}$/.test(a)){showError("Aadhaar number sahi nahi hai. 12 valid digits daaliye.");throw Error("Invalid Aadhaar")}return a}
+
+window.addEventListener("unhandledrejection",e=>{if(e.reason?.message&&!["Invalid phone","Invalid OTP","Invalid Aadhaar"].includes(e.reason.message))showError(e.reason.message)});
 
 function show(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   qs(id).classList.add("active");
-  ["Landing","Customer","Worker"].forEach(n=>{let t=qs("tab"+n);if(t)t.classList.toggle("active",n.toLowerCase()==id)});
+  ["Landing","Customer","Worker","Admin"].forEach(n=>{let t=qs("tab"+n);if(t)t.classList.toggle("active",n.toLowerCase()==id)});
   if(id=="customer")loadCustomer();
   if(id=="worker"&&workerPhone)workerDashboard();
+  if(id=="admin"&&adminKey)loadAdmin();
 }
 
 async function boot(){
@@ -442,13 +500,28 @@ function fillCustomer(){
 function custSection(id){document.querySelectorAll(".custSec").forEach(s=>s.style.display="none");qs(id).style.display="block"}
 function toggleCustMenu(){qs("custMenu").classList.toggle("open")}
 
+async function requestCustomerOtp(fromProfile=false){
+  let phone=requirePhone((fromProfile?qs("cProfilePhone").value:qs("cPhone").value)||qs("cPhone").value);
+  let d=await api("/api/otp/request",{method:"POST",headers:headers(),body:JSON.stringify({scope:"customer",phone})});
+  toast("Customer OTP: "+d.demoOtp);
+}
+async function verifyCustomerOtp(fromProfile=false){
+  let phone=requirePhone((fromProfile?qs("cProfilePhone").value:qs("cPhone").value)||qs("cPhone").value);
+  let otp=requireOtp(fromProfile?qs("cProfileOtp").value:qs("cOtp").value);
+  let d=await api("/api/otp/verify",{method:"POST",headers:headers(),body:JSON.stringify({scope:"customer",phone,otp})});
+  customerOtpToken=d.otpToken;
+  return customerOtpToken;
+}
 async function customerLogin(fromProfile=false){
   let c={name:(fromProfile?qs("cProfileName").value:qs("cName").value)||qs("cName").value,
     phone:(fromProfile?qs("cProfilePhone").value:qs("cPhone").value)||qs("cPhone").value,
     address:qs("cAddress").value,city:qs("cCity").value,notification:qs("cNotify").checked};
+  c.phone=requirePhone(c.phone);
+  c.otpToken=await verifyCustomerOtp(fromProfile);
   let d=await api("/api/customer/login",{method:"POST",headers:headers(),body:JSON.stringify(c)});
   currentCustomer=d.customer;localStorage.fixitCustomer=JSON.stringify(currentCustomer);
-  fillCustomer();toast("Customer saved");loadCustomer();
+  customerOtpToken="";
+  fillCustomer();toast("Customer saved after OTP verification");loadCustomer();
 }
 
 async function loadCustomer(){
@@ -549,29 +622,28 @@ async function fileData(input){
   return await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res({name:f.name,type:f.type,dataUrl:r.result});r.onerror=()=>rej(Error("File read failed"));r.readAsDataURL(f)});
 }
 async function workerRegister(){
-  let btn=document.activeElement&&document.activeElement.tagName=="BUTTON"?document.activeElement:null;
-  try{
-    if(btn){btn.disabled=true;btn.dataset.label=btn.textContent;btn.textContent="Submitting...";}
-    if(!qs("rName").value.trim())throw Error("Please enter your name");
-    if(phone10(qs("rPhone").value).length!==10)throw Error("Please enter a valid 10 digit phone number");
-    if(!qs("rService").value)throw Error("Please choose a service");
-    if(!qs("rCharge").value||Number(qs("rCharge").value)<50)throw Error("Please enter a valid charge (minimum 50)");
-    if(!qs("rPhoto").files[0])throw Error("Please choose a photo");
-    if(!qs("rId").files[0])throw Error("Please choose your ID proof (Aadhaar card photo/PDF)");
-    let payload={name:qs("rName").value,phone:qs("rPhone").value,service:qs("rService").value,area:qs("rArea").value,charge:qs("rCharge").value,exp:qs("rExp").value,aadhaar:qs("rAadhaar").value,photo:await fileData(qs("rPhoto")),idProof:await fileData(qs("rId"))};
-    let d=await api("/api/worker/register",{method:"POST",headers:headers(),body:JSON.stringify(payload)});
-    workerPhone=d.application.phone;localStorage.fixitWorkerPhone=workerPhone;
-    toast("ID verified. You are now Online.");workerDashboard();
-  }catch(e){
-    toast(e.message||"Could not submit for verification. Please check the details and try again.");
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent=btn.dataset.label;}
-  }
+  let payload={name:qs("rName").value,phone:requirePhone(qs("rPhone").value),aadhaar:requireAadhaar(qs("rAadhaar").value),service:qs("rService").value,area:qs("rArea").value,charge:qs("rCharge").value,exp:qs("rExp").value,photo:await fileData(qs("rPhoto")),idProof:await fileData(qs("rId"))};
+  let d=await api("/api/worker/register",{method:"POST",headers:headers(),body:JSON.stringify(payload)});
+  workerPhone=d.application.phone;localStorage.fixitWorkerPhone=workerPhone;
+  toast("Submitted. Admin verification pending.");workerDashboard();
 }
-function phone10(v){return String(v||"").replace(/[^\d]/g,"").slice(-10)}
+async function requestWorkerOtp(){
+  let phone=requirePhone(qs("wLoginPhone").value);
+  let d=await api("/api/otp/request",{method:"POST",headers:headers(),body:JSON.stringify({scope:"worker",phone})});
+  toast("Worker OTP: "+d.demoOtp);
+}
+async function verifyWorkerOtp(){
+  let phone=requirePhone(qs("wLoginPhone").value);
+  let otp=requireOtp(qs("wOtp").value);
+  let d=await api("/api/otp/verify",{method:"POST",headers:headers(),body:JSON.stringify({scope:"worker",phone,otp})});
+  workerOtpToken=d.otpToken;
+  return workerOtpToken;
+}
 async function workerLogin(){
-  workerPhone=qs("wLoginPhone").value;
-  await api("/api/worker/login",{method:"POST",headers:headers(),body:JSON.stringify({phone:workerPhone})});
+  workerPhone=requirePhone(qs("wLoginPhone").value);
+  let otpToken=await verifyWorkerOtp();
+  await api("/api/worker/login",{method:"POST",headers:headers(),body:JSON.stringify({phone:workerPhone,otpToken})});
+  workerOtpToken="";
   localStorage.fixitWorkerPhone=workerPhone;workerDashboard();
 }
 async function workerDashboard(){
@@ -662,6 +734,48 @@ async function sendHelp(){
   let d=await api("/api/help/chat",{method:"POST",headers:headers(),body:JSON.stringify({phone:currentCustomer.phone,message:msg})});
   qs("chatBox").innerHTML+=`<div class="chatMsg">${esc(d.reply)}</div>`;
   qs("chatInput").value="";qs("chatBox").scrollTop=qs("chatBox").scrollHeight;
+}
+
+/* ---- admin ---- */
+async function adminLogin(){
+  adminKey=qs("adminKey").value;localStorage.fixitAdminKey=adminKey;
+  await api("/api/admin/login",{method:"POST",headers:headers(true),body:"{}"});
+  loadAdmin();
+}
+async function loadAdmin(){
+  let d=await api("/api/admin/dashboard",{headers:headers(true)});
+  qs("adminLogin").style.display="none";qs("adminDash").style.display="block";
+  qs("aCustomers").textContent=d.customers.length;qs("aWorkers").textContent=d.workers.length;
+  qs("aPending").textContent=d.workerApplications.filter(a=>a.verificationStatus=="pending").length;
+  qs("aBookings").textContent=d.bookings.length;
+  qs("adminApps").innerHTML=d.workerApplications.length?d.workerApplications.map(a=>`<div class="card row"><div><div class="name">${esc(a.name)}</div><div class="meta">${esc(a.service)} · ${esc(a.phone)} · ${esc(a.verificationStatus)}</div><a href="${esc(a.idUrl)}" target="_blank">View ID</a></div>${a.verificationStatus=="pending"?`<div><button class="btn primary" onclick="reviewApp(${a.id},'verify')">Verify</button> <button class="btn danger" onclick="reviewApp(${a.id},'reject')">Reject</button></div>`:""}</div>`).join(""):'<div class="empty">No applications</div>';
+  qs("adminBookings").innerHTML=bookingCards(d.bookings);
+  drawAdminMap(d.workers);
+}
+async function reviewApp(id,action){
+  await api(`/api/admin/worker-applications/${id}/${action}`,{method:"POST",headers:headers(true),body:JSON.stringify({reason:"Documents not clear"})});
+  toast("Application updated");loadAdmin();boot();
+}
+function drawAdminMap(list){
+  if(!adminMapObj){
+    adminMapObj=L.map("adminMap").setView([AMBI.lat,AMBI.lng],12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap"}).addTo(adminMapObj);
+  }
+  setTimeout(()=>adminMapObj.invalidateSize(),80);
+  let seen=new Set();
+  list.forEach(w=>{
+    if(w.lat==null||w.lng==null)return;
+    seen.add(w.id);
+    let cls=w.status=="Online"?"green":w.status=="Busy"?"amber":"grey";
+    let color=w.status=="Online"?"#0f7a6c":w.status=="Busy"?"#f2a71b":"#9aa4ad";
+    let html=`<div style="background:${color};color:#fff;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.3);font-size:11px;font-weight:800">${esc((w.name||"?").slice(0,1))}</div>`;
+    let icon=L.divIcon({className:"",html,iconSize:[28,28],iconAnchor:[14,14]});
+    if(adminMapMarkers[w.id]){adminMapMarkers[w.id].setLatLng([w.lat,w.lng]).setIcon(icon)}
+    else{
+      adminMapMarkers[w.id]=L.marker([w.lat,w.lng],{icon}).addTo(adminMapObj).bindPopup(`<b>${esc(w.name)}</b><br>${esc(w.service)} · ${esc(w.status)}`);
+    }
+  });
+  Object.keys(adminMapMarkers).forEach(id=>{if(!seen.has(Number(id))){adminMapObj.removeLayer(adminMapMarkers[id]);delete adminMapMarkers[id]}});
 }
 
 /* ---- reviews ---- */
