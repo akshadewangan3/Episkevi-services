@@ -174,9 +174,27 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 
 @media(max-width:940px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:repeat(2,1fr)}.chips{grid-template-columns:repeat(3,1fr)}.statusLine{grid-template-columns:repeat(2,1fr)}.ticketRow{grid-template-columns:1fr}}
 @media(max-width:640px){.topin{align-items:stretch;flex-direction:column}.tabs{display:grid;grid-template-columns:repeat(4,1fr)}.wrap{padding:16px 14px 40px}.grid3,.chips,.statusLine{grid-template-columns:1fr}.head,.foot{align-items:stretch;flex-direction:column}.drawer{display:none}.drawer.open{display:grid}.hamb{display:inline-flex}.liveStrip{gap:16px}}
+
+/* ---- polish: ambient bg + entrance + logo shine + ripple (visual only, no logic changes) ---- */
+.bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-fx span{position:absolute;border-radius:50%;filter:blur(80px);opacity:.14;background:radial-gradient(circle,var(--teal),transparent 70%);animation:drift 30s ease-in-out infinite}
+.bg-fx span:nth-child(1){width:480px;height:480px;top:-160px;left:-120px}
+.bg-fx span:nth-child(2){width:400px;height:400px;bottom:-140px;right:-100px;background:radial-gradient(circle,var(--accent2),transparent 70%);animation-duration:34s;animation-delay:-6s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.06)}}
+.top,.wrap,main{position:relative;z-index:1}
+@media(prefers-reduced-motion:reduce){.bg-fx span{animation:none}}
+.mark{position:relative;overflow:hidden}
+.mark::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(115deg,transparent,rgba(255,255,255,.5),transparent);animation:shine 4.5s ease-in-out infinite}
+@keyframes shine{0%{left:-60%}45%,100%{left:130%}}
+.panel{animation:fadeUpPanel .6s cubic-bezier(.22,.9,.3,1) both}
+@keyframes fadeUpPanel{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.rippleWrap{position:relative;overflow:hidden}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);animation:rip .55s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(2.6);opacity:0}}
 </style>
 </head>
 <body>
+<div class="bg-fx"><span></span><span></span></div>
 <div id="toast" class="toast"></div>
 <header class="top"><div class="topin">
   <div class="brand" onclick="location.href='index.html'"><span class="mark">FI</span>FixIt Admin</div>
@@ -405,6 +423,34 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 </div></div>
 
 <script>
+/* ---- tap feedback: haptic + click sound + ripple (visual only) ---- */
+let __ac;
+function __tone(){
+  try{
+    __ac=__ac||new (window.AudioContext||window.webkitAudioContext)();
+    if(__ac.state==="suspended")__ac.resume();
+    const t=__ac.currentTime,o=__ac.createOscillator(),g=__ac.createGain();
+    o.type="sine";o.frequency.setValueAtTime(880,t);o.frequency.exponentialRampToValueAtTime(560,t+.08);
+    g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+.09);
+    o.connect(g);g.connect(__ac.destination);o.start(t);o.stop(t+.1);
+  }catch(e){}
+}
+function __ripple(el,x,y){
+  try{
+    const r=document.createElement("span");r.className="ripple";
+    const rect=el.getBoundingClientRect(),size=Math.max(rect.width,rect.height);
+    r.style.width=r.style.height=size+"px";r.style.left=(x-rect.left-size/2)+"px";r.style.top=(y-rect.top-size/2)+"px";
+    el.classList.add("rippleWrap");el.appendChild(r);setTimeout(()=>r.remove(),600);
+  }catch(e){}
+}
+document.addEventListener("click",function(ev){
+  const t=ev.target.closest("button,a.btn");
+  if(!t)return;
+  if(navigator.vibrate)navigator.vibrate(10);
+  __tone();
+  __ripple(t,ev.clientX||0,ev.clientY||0);
+},true);
+
 const qs=id=>document.getElementById(id);
 const money=v=>"Rs. "+Number(v||0).toLocaleString("en-IN");
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
