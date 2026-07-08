@@ -174,9 +174,73 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 
 @media(max-width:940px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:repeat(2,1fr)}.chips{grid-template-columns:repeat(3,1fr)}.statusLine{grid-template-columns:repeat(2,1fr)}.ticketRow{grid-template-columns:1fr}}
 @media(max-width:640px){.topin{align-items:stretch;flex-direction:column}.tabs{display:grid;grid-template-columns:repeat(4,1fr)}.wrap{padding:16px 14px 40px}.grid3,.chips,.statusLine{grid-template-columns:1fr}.head,.foot{align-items:stretch;flex-direction:column}.drawer{display:none}.drawer.open{display:grid}.hamb{display:inline-flex}.liveStrip{gap:16px}}
+
+/* ================= VISUAL POLISH LAYER ================= */
+.bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-fx span{position:absolute;border-radius:50%;filter:blur(80px);opacity:.16;background:radial-gradient(circle,var(--teal),transparent 70%);animation:drift 26s ease-in-out infinite}
+.bg-fx span:nth-child(1){width:520px;height:520px;top:-160px;left:-120px;animation-duration:30s}
+.bg-fx span:nth-child(2){width:420px;height:420px;bottom:-140px;right:-100px;background:radial-gradient(circle,var(--accent2),transparent 70%);animation-duration:34s;animation-delay:-6s}
+.bg-fx span:nth-child(3){width:340px;height:340px;top:40%;left:60%;background:radial-gradient(circle,var(--teal2),transparent 70%);animation-duration:22s;animation-delay:-11s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.08)}66%{transform:translate(-30px,20px) scale(.95)}}
+.top,.wrap,main,footer,#toast,.modalCover{position:relative;z-index:1}
+@media(prefers-reduced-motion:reduce){.bg-fx span{animation:none}}
+
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.22,.9,.3,1),transform .7s cubic-bezier(.22,.9,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+.dispatchHero{isolation:isolate}
+.dispatchHero::after{content:"";position:absolute;inset:0;background:
+  radial-gradient(420px 220px at 85% 0%,rgba(201,168,76,.14),transparent 65%),
+  linear-gradient(120deg,transparent 0%,rgba(201,168,76,.05) 50%,transparent 100%);
+  background-size:100% 100%,220% 220%;animation:sheen 9s ease-in-out infinite;pointer-events:none;z-index:-1}
+@keyframes sheen{0%{background-position:0 0,0% 50%}50%{background-position:0 0,100% 50%}100%{background-position:0 0,0% 50%}}
+.heroRow{display:flex;align-items:center;gap:clamp(20px,4vw,48px);flex-wrap:wrap}
+.heroRow>.heroText{flex:1 1 380px;min-width:0}
+.heroArt{flex:0 0 auto;width:clamp(150px,22vw,220px);opacity:0;transform:scale(.85) rotate(-4deg);animation:artIn 1s cubic-bezier(.22,1.4,.36,1) .3s forwards}
+@keyframes artIn{to{opacity:1;transform:scale(1) rotate(0)}}
+.heroArt svg{width:100%;height:auto;filter:drop-shadow(0 18px 34px rgba(201,168,76,.25))}
+.heroArt .spin{transform-origin:110px 108px;animation:spin 16s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:760px){.heroArt{display:none}}
+
+.tIcon.svgIcon{width:52px;height:52px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(201,168,76,.16),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.25);border-radius:16px;transition:all .3s ease}
+.tIcon.svgIcon svg{width:26px;height:26px;transition:stroke .3s ease}
+.ticket:hover .tIcon.svgIcon{background:linear-gradient(135deg,var(--teal),#8B6914);box-shadow:0 6px 20px rgba(201,168,76,.35)}
+.ticket:hover .tIcon.svgIcon svg{stroke:#0A0A0F}
+
+.mark{position:relative;overflow:hidden}
+.mark::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(115deg,transparent,rgba(255,255,255,.55),transparent);animation:shine 4.5s ease-in-out infinite}
+@keyframes shine{0%{left:-60%}45%,100%{left:130%}}
+
+.rippleWrap{position:relative;overflow:hidden}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);transform:scale(0);animation:rip .55s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(2.6);opacity:0}}
+
+#splash{position:fixed;inset:0;z-index:500;background:radial-gradient(circle at 50% 40%,#15151f,#07070b 75%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;transition:opacity .6s ease,visibility .6s ease}
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+#splash .sMark{width:84px;height:84px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(135deg,#8B6914,var(--teal));box-shadow:0 0 60px rgba(201,168,76,.4);animation:popIn .7s cubic-bezier(.22,1.6,.4,1) both}
+#splash .sMark svg{width:44px;height:44px}
+@keyframes popIn{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+#splash h1{font-family:var(--display);font-size:clamp(26px,5vw,40px);margin:0;font-weight:900;letter-spacing:-1px;
+  background:linear-gradient(135deg,var(--teal),var(--teal2),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent;
+  opacity:0;animation:fadeUp .7s ease .25s forwards}
+#splash p{margin:0;color:var(--muted);font-size:14px;letter-spacing:.14em;text-transform:uppercase;opacity:0;animation:fadeUp .7s ease .45s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+#splash .sBar{width:180px;height:3px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;opacity:0;animation:fadeUp .6s ease .6s forwards}
+#splash .sBar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--teal2));animation:load 1.5s ease .7s forwards}
+@keyframes load{to{width:100%}}
+#splash .sSkip{margin-top:6px;font-size:12px;color:var(--muted);opacity:0;animation:fadeUp .6s ease .9s forwards;cursor:pointer;border-bottom:1px dashed rgba(255,255,255,.2)}
 </style>
 </head>
 <body>
+<div id="splash">
+  <div class="sMark"><svg viewBox="0 0 24 24" fill="none" stroke="#0A0A0F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a1.5 1.5 0 0 0 2.1 2.1l6-6a4 4 0 0 0 5.4-5.4l-2.1 2.1-2-2 2.1-2.1z"/></svg></div>
+  <h1>FixIt</h1>
+  <p>Verified home services, on demand</p>
+  <div class="sBar"><i></i></div>
+  <div class="sSkip" onclick="dismissSplash()">Tap to continue</div>
+</div>
+<div class="bg-fx"><span></span><span></span><span></span></div>
 <div id="toast" class="toast"></div>
 <header class="top"><div class="topin">
   <div class="brand" onclick="show('landing')"><span class="mark">FI</span>FixIt</div>
@@ -191,20 +255,36 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 
 <!-- ============ LANDING / DISPATCH BOARD ============ -->
 <main id="landing" class="screen active"><div class="wrap">
-  <section class="dispatchHero">
-    <div class="eyebrow">FixIt · Ambikapur</div>
-    <h1>Are you booking a repair, or here to work?</h1>
-    <p class="lead">Pick your side to continue. Homeowners verify their phone and book a trusted, verified pro. Workers verify their phone, get approved, and start taking jobs.</p>
-    <div class="liveStrip">
-      <div><strong id="mWorkers">0</strong><span>Workers on the board</span></div>
-      <div><strong id="mOnline">0</strong><span>Online right now</span></div>
-      <div><strong id="mBookings">0</strong><span>Jobs dispatched</span></div>
+  <section class="dispatchHero reveal">
+    <div class="heroRow">
+      <div class="heroText">
+        <div class="eyebrow">FixIt · Ambikapur</div>
+        <h1>Are you booking a repair, or here to work?</h1>
+        <p class="lead">Pick your side to continue. Homeowners verify their phone and book a trusted, verified pro. Workers verify their phone, get approved, and start taking jobs.</p>
+        <div class="liveStrip">
+          <div><strong id="mWorkers">0</strong><span>Workers on the board</span></div>
+          <div><strong id="mOnline">0</strong><span>Online right now</span></div>
+          <div><strong id="mBookings">0</strong><span>Jobs dispatched</span></div>
+        </div>
+      </div>
+      <div class="heroArt" aria-hidden="true">
+        <svg viewBox="0 0 220 220" fill="none">
+          <circle class="spin" cx="110" cy="108" r="86" stroke="url(#g1)" stroke-width="1.4" stroke-dasharray="4 10" opacity=".55"/>
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9A84C"/><stop offset="1" stop-color="#E8D49A"/></linearGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9A84C"/><stop offset="1" stop-color="#8B6914"/></linearGradient>
+          </defs>
+          <circle cx="110" cy="108" r="64" fill="rgba(201,168,76,.08)"/>
+          <path d="M70 118 L110 84 L150 118 L150 152 A6 6 0 0 1 144 158 L124 158 L124 134 L96 134 L96 158 L76 158 A6 6 0 0 1 70 152 Z" fill="url(#g2)" opacity=".92"/>
+          <path d="M148 66 a10 10 0 0 1 14 14 l-30 30 -18 4 4-18 z" fill="none" stroke="url(#g1)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+      </div>
     </div>
   </section>
 
-  <div class="ticketRow roleRow">
+  <div class="ticketRow roleRow reveal">
     <article class="ticket cust" onclick="show('customer')">
-      <div class="tIcon">🏠</div>
+      <div class="tIcon svgIcon"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1V9.5"/></svg></div>
       <span class="code">I'M A CUSTOMER</span>
       <h3>Book a worker</h3>
       <p>Browse verified electricians, plumbers, carpenters and more. Verify your phone, book in a tap, and watch your worker's live location until they arrive.</p>
@@ -212,7 +292,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
     </article>
 
     <article class="ticket work" onclick="show('worker')">
-      <div class="tIcon">🛠️</div>
+      <div class="tIcon svgIcon"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6.6 6.6a1.5 1.5 0 0 0 2.1 2.1l6.6-6.6a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.1-2.1 2.4-2.4z"/></svg></div>
       <span class="code">I'M A WORKER</span>
       <h3>Take jobs</h3>
       <p>Verify your phone, register with photo and ID proof, get approved by admin, then go online and start accepting jobs near you.</p>
@@ -220,7 +300,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
     </article>
   </div>
 
-  <section class="panel"><div class="head"><div><h2 class="title">Who's on the board right now</h2><div class="sub">A quick look before you continue. Book from the Customer side.</div></div></div><div id="workersPreview" class="grid3"></div></section>
+  <section class="panel reveal"><div class="head"><div><h2 class="title">Who's on the board right now</h2><div class="sub">A quick look before you continue. Book from the Customer side.</div></div></div><div id="workersPreview" class="grid3"></div></section>
 
   <div class="staffLink"><a href="admin.html">Staff / admin login &rarr;</a></div>
 </div></main>
@@ -413,6 +493,57 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 </div></div>
 
 <script>
+/* ---- splash intro ---- */
+function dismissSplash(){
+  const s=qs("splash");if(!s||s.classList.contains("hide"))return;
+  s.classList.add("hide");
+  try{sessionStorage.setItem("fixitSplashSeen","1")}catch(e){}
+  setTimeout(()=>s.remove(),700);
+}
+(function(){
+  let seen=false;try{seen=sessionStorage.getItem("fixitSplashSeen")==="1"}catch(e){}
+  if(seen){let s=qs("splash");if(s)s.remove();}
+  else{setTimeout(dismissSplash,2600);}
+})();
+
+/* ---- scroll reveal ---- */
+(function(){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.12});
+  function arm(){document.querySelectorAll(".reveal").forEach(el=>io.observe(el));}
+  document.addEventListener("DOMContentLoaded",arm);
+  if(document.readyState!=="loading")arm();
+  window.armReveal=arm; // call again after screen switches reveal new panels
+})();
+
+/* ---- tap feedback: haptic + click sound + ripple ---- */
+let __ac;
+function __tone(){
+  try{
+    __ac=__ac||new (window.AudioContext||window.webkitAudioContext)();
+    if(__ac.state==="suspended")__ac.resume();
+    const t=__ac.currentTime,o=__ac.createOscillator(),g=__ac.createGain();
+    o.type="sine";o.frequency.setValueAtTime(880,t);o.frequency.exponentialRampToValueAtTime(560,t+.08);
+    g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+.09);
+    o.connect(g);g.connect(__ac.destination);o.start(t);o.stop(t+.1);
+  }catch(e){}
+}
+function __ripple(el,x,y){
+  try{
+    if(getComputedStyle(el).position==="static")el.classList.add("rippleWrap");
+    const r=document.createElement("span");r.className="ripple";
+    const rect=el.getBoundingClientRect(),size=Math.max(rect.width,rect.height);
+    r.style.width=r.style.height=size+"px";r.style.left=(x-rect.left-size/2)+"px";r.style.top=(y-rect.top-size/2)+"px";
+    el.classList.add("rippleWrap");el.appendChild(r);setTimeout(()=>r.remove(),600);
+  }catch(e){}
+}
+document.addEventListener("click",function(ev){
+  const t=ev.target.closest("button,.ticket,.chip,.tabs button,a.btn");
+  if(!t)return;
+  if(navigator.vibrate)navigator.vibrate(10);
+  __tone();
+  __ripple(t,ev.clientX||0,ev.clientY||0);
+},true);
+
 const qs=id=>document.getElementById(id);
 const money=v=>"Rs. "+Number(v||0).toLocaleString("en-IN");
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
