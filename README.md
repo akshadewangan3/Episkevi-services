@@ -2,6 +2,10 @@
 
 This is a publishable FixIt marketplace website with a Node.js backend API, OTP-verified customer and worker sign-in, worker verification, incoming booking workflow, a separate admin page, UPI booking, Razorpay Checkout support, WhatsApp review links, and AI-style help chat.
 
+**3. Fresh visual redesign (Zomato / Rapido style).** The whole interface has a new look: a bold coral-to-orange gradient brand color, pill-shaped buttons and nav, rounded warm-cream cards, Poppins display type, and solid-color status/rating badges (green "Online", yellow rating chips) instead of the previous muted navy dispatch-board theme. No functionality changed — same screens, same IDs, same API — just a punchier, more consumer-app feel.
+
+**3. Visual redesign — dark gold luxury theme.** The interface now matches a reference design you provided: near-black background (#0A0A0F), a gold gradient brand accent (#C9A84C), Playfair Display serif headings, DM Sans body text, and DM Mono for numbers/data. Pill-shaped buttons, glowing gold borders on hover, gradient brand text, and a dark CartoDB basemap for the live maps (so they match the theme instead of a bright default OpenStreetMap). No functionality changed — same screens, same IDs, same API — only the visual layer.
+
 ## What changed in this update
 
 **1. Fixed the verification problem.** Customer and worker login used to be "type any phone number" with no proof of ownership — anyone could book, cancel, accept jobs, or write reviews as any phone number just by typing it in. That's fixed:

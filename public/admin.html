@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FixIt Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --ink:#F0EDE6; --muted:#8A8799; --line:rgba(201,168,76,.16); --paper:#111118; --wash:#0A0A0F;
+  --navy:#1A1A24; --navy2:#22222F; --amber:#C9A84C; --amber-ink:#0A0A0F;
+  --teal:#C9A84C; --teal2:#E8D49A; --teal-wash:rgba(201,168,76,.10); --red:#E74C3C; --red-wash:rgba(231,76,60,.12);
+  --green:#2ECC71; --green-wash:rgba(46,204,113,.12); --accent:#4E9FF5; --accent2:#7B5CF0; --warning:#F39C12;
+  --shadow:0 8px 40px rgba(0,0,0,.5); --shadow-gold:0 0 40px rgba(201,168,76,.15);
+  --display:"Playfair Display",serif; --mono:"DM Mono",monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--wash);color:var(--ink);font-family:"DM Sans",sans-serif;overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
+.mono{font-family:var(--mono)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--paper)}
+::-webkit-scrollbar-thumb{background:var(--gold-dark,#8B6914);border-radius:4px}
+
+/* ---- top bar ---- */
+.top{position:sticky;top:0;z-index:40;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(10,10,15,.9);backdrop-filter:blur(20px)}
+.topin{max-width:1280px;margin:auto;padding:13px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:10px;align-items:center;font-family:var(--display);font-size:26px;font-weight:900;cursor:pointer;letter-spacing:-1px}
+.brand{background:linear-gradient(135deg,var(--teal),var(--teal2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(135deg,#8B6914,var(--teal));color:#0A0A0F;font-family:var(--mono);font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(201,168,76,.35)}
+.tabs{display:flex;gap:4px;padding:5px;border:1px solid rgba(255,255,255,.06);border-radius:999px;background:var(--paper)}
+.tabs button{border:0;border-radius:999px;background:transparent;color:var(--muted);font-weight:600;min-height:36px;padding:0 16px;font-size:14px;transition:all .2s ease;font-family:"DM Sans",sans-serif}
+.tabs button.active{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0A0A0F;font-weight:700}
+.sync{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:#4A4860}
+.dot.live{background:var(--green);box-shadow:0 0 0 4px var(--green-wash);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.screen{display:none}
+.screen.active{display:block}
+.wrap{max-width:1280px;margin:auto;padding:26px 22px 60px}
+
+/* ---- landing / role picker ---- */
+.dispatchHero{border-radius:22px;background:var(--paper);color:var(--ink);padding:clamp(30px,5vw,58px);position:relative;overflow:hidden;border:1px solid rgba(201,168,76,.15)}
+.dispatchHero::before{content:"";position:absolute;top:-200px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(201,168,76,.10) 0%,transparent 70%);pointer-events:none}
+.dispatchHero>*{position:relative}
+.eyebrow{font-family:"DM Sans",sans-serif;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);background:rgba(201,168,76,.08);display:inline-flex;align-items:center;gap:8px;padding:7px 16px 7px 26px;border-radius:999px;border:1px solid rgba(201,168,76,.18);position:relative}
+.eyebrow::before{content:"";position:absolute;left:12px;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.dispatchHero h1{font-size:clamp(34px,5.2vw,58px);line-height:1.08;margin:18px 0 12px;font-weight:900;letter-spacing:-2px;
+  background:linear-gradient(135deg,var(--teal) 0%,var(--teal2) 50%,var(--teal) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;max-width:700px}
+.dispatchHero .lead{font-size:17px;line-height:1.7;color:var(--muted);max-width:520px;font-family:"DM Sans",sans-serif;font-weight:300}
+.liveStrip{display:flex;gap:32px;flex-wrap:wrap;margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08)}
+.liveStrip div strong{display:block;font-family:var(--display);font-size:28px;font-weight:700;color:var(--teal)}
+.liveStrip div span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+
+.ticketRow{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:26px}
+.roleRow{grid-template-columns:repeat(2,1fr)}
+.roleRow .ticket{padding:34px 30px 32px;text-align:left}
+.roleRow .tIcon{font-size:40px;margin-bottom:14px;width:auto;height:auto;background:none;box-shadow:none;display:block}
+.staffLink{text-align:center;margin-top:26px}
+.staffLink a{color:var(--muted);font-weight:600;font-size:13px;text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.15)}
+.staffLink a:hover{color:var(--teal)}
+.ticket{position:relative;background:var(--paper);border:1px solid rgba(201,168,76,.15);border-radius:22px;padding:26px 24px 30px;transition:all .3s ease;cursor:pointer;overflow:hidden}
+.ticket::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);opacity:0;transition:opacity .3s}
+.ticket:hover{border-color:rgba(201,168,76,.5);transform:translateY(-6px);box-shadow:var(--shadow-gold)}
+.ticket:hover::after{opacity:1}
+.ticket.cust .code{color:var(--teal)}
+.ticket.work .code{color:var(--accent2)}
+.ticket.adm .code{color:var(--accent)}
+.tIcon{width:44px;height:44px;border-radius:12px;background:var(--navy);color:var(--teal);display:grid;place-items:center;font-weight:700;font-family:var(--mono);font-size:14px;margin-bottom:16px}
+.ticket h3{font-size:26px;margin:0 0 8px;font-weight:700;letter-spacing:-.5px;color:var(--ink)}
+.code{font-family:"DM Sans",sans-serif;font-size:12px;font-weight:600;letter-spacing:.15em;margin-bottom:10px;display:block;text-transform:uppercase}
+.ticket p{color:var(--muted);line-height:1.6;font-size:14.5px;margin:0 0 20px;min-height:64px;font-weight:300}
+.barcode{display:none}
+.stamp{display:none}
+.ticket .go{display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:14.5px;color:var(--teal)}
+.ticket .go em{font-style:normal;background:var(--navy);border-radius:999px;padding:7px 14px;font-size:15px;color:var(--ink)}
+
+.panel{margin-top:24px;padding:24px;border:1px solid rgba(255,255,255,.06);border-radius:20px;background:var(--paper);box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.title{font-size:22px;font-weight:700;margin:0;letter-spacing:-.5px;color:var(--ink)}
+.sub,.muted{color:var(--muted);line-height:1.5;font-size:14px}
+.btn{min-height:44px;border:0;border-radius:999px;padding:0 20px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-size:14.5px;transition:all .25s ease;font-family:"DM Sans",sans-serif;letter-spacing:.2px}
+.btn:hover{transform:translateY(-2px)}
+.primary{background:linear-gradient(135deg,var(--teal),#8B6914);color:#0A0A0F;font-weight:700;box-shadow:0 4px 20px rgba(201,168,76,.3)}
+.primary:hover{box-shadow:0 8px 30px rgba(201,168,76,.4)}
+.dark{background:transparent;color:var(--teal);border:1.5px solid var(--teal)}
+.dark:hover{background:rgba(201,168,76,.1)}
+.amberBtn{background:var(--teal2);color:#0A0A0F}
+.soft{background:var(--navy);color:var(--teal);border:1px solid rgba(201,168,76,.2)}
+.soft:hover{background:var(--teal);color:#0A0A0F}
+.danger{background:var(--red-wash);color:var(--red);border:1px solid rgba(231,76,60,.3)}
+.warn{background:rgba(243,156,18,.12);color:var(--warning);border:1px solid rgba(243,156,18,.3)}
+.light{background:var(--navy);border:1px solid rgba(255,255,255,.08);color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.grid2{display:grid;grid-template-columns:300px 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.field{margin-bottom:12px}
+.field label{display:block;margin-bottom:7px;color:var(--muted);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.1em}
+.field input,.field select,.field textarea{width:100%;min-height:46px;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:11px 15px;outline:0;background:var(--navy);color:var(--ink)}
+.field textarea{min-height:80px;resize:vertical}
+.field input::placeholder,.field textarea::placeholder{color:#4A4860}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.chips{display:grid;grid-template-columns:repeat(6,minmax(112px,1fr));gap:12px}
+.chip{min-height:90px;border:1px solid rgba(255,255,255,.06);border-radius:14px;background:var(--paper);text-align:left;padding:14px;transition:all .25s ease;color:var(--ink)}
+.chip:hover{border-color:rgba(201,168,76,.4);transform:translateY(-3px)}
+.chip.active{background:rgba(201,168,76,.08);border-color:var(--teal)}
+.icon{width:32px;height:32px;border-radius:8px;background:var(--navy);color:var(--teal);display:grid;place-items:center;font-size:11px;font-weight:700;margin-bottom:9px;font-family:var(--mono)}
+.chip.active .icon{background:var(--teal);color:#0A0A0F}
+.worker{min-height:320px;padding:18px;display:flex;flex-direction:column;border-radius:20px}
+.row{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#8B6914,var(--accent2));color:#fff;overflow:hidden;display:grid;place-items:center;font-weight:700;flex:0 0 auto;font-family:var(--display);border:2px solid rgba(201,168,76,.2)}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.name{font-weight:600;color:var(--ink)}
+.meta{font-size:13px;color:var(--muted);line-height:1.5}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}
+.tag{min-height:25px;border-radius:999px;padding:4px 11px;background:var(--navy);color:var(--muted);font-size:11px;font-weight:600;border:1px solid rgba(255,255,255,.06);letter-spacing:.02em}
+.green{background:var(--green-wash);color:var(--green);border:1px solid rgba(46,204,113,.3)}
+.amber{background:rgba(243,156,18,.14);color:var(--warning);border:1px solid rgba(243,156,18,.3)}
+.blue{background:rgba(78,159,245,.14);color:var(--accent);border:1px solid rgba(78,159,245,.3)}
+.exp{flex:1;color:var(--muted);line-height:1.55;font-size:14px;font-weight:300}
+.foot{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:15px}
+.price{font-size:20px;font-weight:700;color:var(--teal);font-family:var(--display)}
+.drawer{padding:15px;display:grid;gap:8px;align-content:start;border:1px solid rgba(255,255,255,.06);border-radius:20px;background:var(--paper)}
+.menuBtn{width:100%;justify-content:flex-start}
+.list{display:grid;gap:12px}
+.card{padding:16px;border:1px solid rgba(255,255,255,.06);border-radius:16px;background:var(--paper)}
+.statusLine{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{padding:16px;border:1px solid rgba(255,255,255,.06);border-radius:14px;background:var(--paper)}
+.stat strong{display:block;font-size:24px;font-family:var(--display);font-weight:700;color:var(--teal)}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.empty{border:1px dashed rgba(255,255,255,.12);border-radius:16px;padding:26px;text-align:center;color:var(--muted);font-weight:500}
+.chatBox{height:250px;overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:12px;background:var(--wash)}
+.chatMsg{margin-bottom:10px;padding:10px 14px;border-radius:14px;background:var(--navy);color:var(--ink)}
+.chatMsg.me{background:rgba(201,168,76,.12);color:var(--teal2)}
+.hamb{display:none}
+.toast{position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:200;display:none;max-width:min(92vw,580px);border-radius:999px;background:var(--paper);border:1px solid rgba(201,168,76,.25);color:var(--ink);padding:13px 20px;font-weight:600;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.toast.show{display:block}
+
+/* live map + tracking */
+.mapBox{height:320px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.mapBoxSm{height:190px;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.trackHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.trackStats{display:flex;gap:18px}
+.trackStats div strong{display:block;font-family:var(--display);font-size:20px;font-weight:700;color:var(--teal)}
+.trackStats div span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.vanIcon{background:var(--teal);color:#0A0A0F;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font-size:15px;border:2px solid #0A0A0F;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.pinIcon{background:var(--red);color:#fff;border-radius:50% 50% 50% 0;width:26px;height:26px;transform:rotate(-45deg);display:grid;place-items:center;border:2px solid #0A0A0F;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.pinIcon span{transform:rotate(45deg);font-size:12px}
+.shareBar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-radius:16px;background:var(--navy);border:1px solid rgba(201,168,76,.15);color:var(--ink);margin-bottom:16px;flex-wrap:wrap}
+.shareBar .left{display:flex;align-items:center;gap:10px}
+.toggle{position:relative;width:46px;height:26px;border-radius:999px;background:rgba(255,255,255,.12);border:0;flex:0 0 auto}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .18s ease}
+.toggle.on{background:var(--green)}
+.toggle.on::after{transform:translateX(20px)}
+
+.modalCover{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.75);backdrop-filter:blur(8px)}
+.modalCover.open{display:flex}
+.modal{width:min(860px,100%);max-height:92vh;overflow:auto;border:1px solid rgba(201,168,76,.2);border-radius:22px;background:var(--paper);box-shadow:var(--shadow);animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modalHead{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.06)}
+.modalBody{padding:22px}
+.summary{border-radius:14px;background:var(--navy);border:1px solid rgba(201,168,76,.15);color:var(--ink);padding:18px}
+.sum{display:flex;justify-content:space-between;padding:8px 0;color:var(--muted);font-size:14px}
+.sum.total{border-top:1px solid rgba(255,255,255,.1);margin-top:8px;padding-top:14px;color:var(--ink);font-weight:700;font-size:20px;font-family:var(--display)}
+.sum.total span:last-child{color:var(--teal)}
+
+@media(max-width:940px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:repeat(2,1fr)}.chips{grid-template-columns:repeat(3,1fr)}.statusLine{grid-template-columns:repeat(2,1fr)}.ticketRow{grid-template-columns:1fr}}
+@media(max-width:640px){.topin{align-items:stretch;flex-direction:column}.tabs{display:grid;grid-template-columns:repeat(4,1fr)}.wrap{padding:16px 14px 40px}.grid3,.chips,.statusLine{grid-template-columns:1fr}.head,.foot{align-items:stretch;flex-direction:column}.drawer{display:none}.drawer.open{display:grid}.hamb{display:inline-flex}.liveStrip{gap:16px}}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<header class="top"><div class="topin">
+  <div class="brand" onclick="location.href='index.html'"><span class="mark">FI</span>FixIt Admin</div>
+  <nav class="tabs">
+    <button onclick="location.href='index.html'">Main app</button><button id="tabAdmin" class="active" onclick="show('admin')">Admin</button>
+  </nav>
+  <div class="sync"><span id="syncDot" class="dot"></span><span id="sync">Connecting</span></div>
+</div></header>
+
+<!-- ============ LANDING / DISPATCH BOARD ============ -->
+<main id="landing" class="screen"><div class="wrap">
+  <section class="dispatchHero">
+    <div class="eyebrow">FixIt · Ambikapur</div>
+    <h1>Are you booking a repair, or here to work?</h1>
+    <p class="lead">Pick your side to continue. Homeowners verify their phone and book a trusted, verified pro. Workers verify their phone, get approved, and start taking jobs.</p>
+    <div class="liveStrip">
+      <div><strong id="mWorkers">0</strong><span>Workers on the board</span></div>
+      <div><strong id="mOnline">0</strong><span>Online right now</span></div>
+      <div><strong id="mBookings">0</strong><span>Jobs dispatched</span></div>
+    </div>
+  </section>
+
+  <div class="ticketRow roleRow">
+    <article class="ticket cust" onclick="show('customer')">
+      <div class="tIcon">🏠</div>
+      <span class="code">I'M A CUSTOMER</span>
+      <h3>Book a worker</h3>
+      <p>Browse verified electricians, plumbers, carpenters and more. Verify your phone, book in a tap, and watch your worker's live location until they arrive.</p>
+      <div class="go">Continue as customer <em>&rarr;</em></div>
+    </article>
+
+    <article class="ticket work" onclick="show('worker')">
+      <div class="tIcon">🛠️</div>
+      <span class="code">I'M A WORKER</span>
+      <h3>Take jobs</h3>
+      <p>Verify your phone, register with photo and ID proof, get approved by admin, then go online and start accepting jobs near you.</p>
+      <div class="go">Continue as worker <em>&rarr;</em></div>
+    </article>
+  </div>
+
+  <section class="panel"><div class="head"><div><h2 class="title">Who's on the board right now</h2><div class="sub">A quick look before you continue. Book from the Customer side.</div></div></div><div id="workersPreview" class="grid3"></div></section>
+
+  <div class="staffLink"><a href="admin.html">Staff / admin login &rarr;</a></div>
+</div></main>
+
+<!-- ============ CUSTOMER ============ -->
+<main id="customer" class="screen"><div class="wrap grid2">
+  <aside class="drawer open" id="custMenu">
+    <button class="btn soft menuBtn" onclick="custSection('custBrowse')">Book a worker</button>
+    <button class="btn soft menuBtn" onclick="custSection('custHome')">My bookings & tracking</button>
+    <button class="btn soft menuBtn" onclick="custSection('custProfile')">Profile</button>
+    <button class="btn soft menuBtn" onclick="custSection('custAddress')">Address</button>
+    <button class="btn soft menuBtn" onclick="custSection('custSettings')">App settings</button>
+    <button class="btn soft menuBtn" onclick="custSection('custHelp')">Help & support</button>
+  </aside>
+  <section class="panel" style="margin-top:0">
+    <div class="head"><div><h2 class="title">Customer desk</h2><div class="sub">Login with phone, book a verified worker, and track them live on the map.</div></div><button class="btn soft hamb" onclick="toggleCustMenu()">Menu</button></div>
+
+    <div id="custBrowse" class="custSec">
+      <div id="custLoginArea">
+        <div class="field"><label>Name</label><input id="cName" placeholder="Your name"></div>
+        <div class="field"><label>Phone</label><input id="cPhone" maxlength="10" placeholder="10 digit phone"></div>
+        <button class="btn primary" onclick="sendCustomerOtp()">Send verification code</button>
+        <div id="custOtpBox" style="display:none;margin-top:12px">
+          <div class="field"><label>Enter 6-digit code sent to your phone</label><input id="cOtp" maxlength="6" placeholder="123456"></div>
+          <div class="row"><button class="btn dark" onclick="verifyCustomerOtp()">Verify &amp; continue</button><button class="btn soft" onclick="sendCustomerOtp()">Resend code</button></div>
+        </div>
+      </div>
+      <div id="custLoggedInBar" class="card row" style="display:none;margin-bottom:14px">
+        <div><b id="custLoggedName"></b><div class="meta">Signed in as <span id="custLoggedPhone"></span></div></div>
+        <button class="btn danger" onclick="customerLogout()">Logout</button>
+      </div>
+      <div class="panel" style="padding:0;border:0;box-shadow:none;margin-top:18px">
+        <div class="head"><div><h3 class="title" style="font-size:20px">Services</h3></div></div>
+        <div id="services" class="chips"></div>
+      </div>
+      <div class="panel" style="padding:0;border:0;box-shadow:none;margin-top:6px">
+        <div class="head"><div><h3 class="title" style="font-size:20px">Verified workers</h3><div class="sub" id="workerSub">Showing all.</div></div><div class="row"><input id="search" placeholder="Search service, worker, area" oninput="renderWorkers()" style="min-height:40px;border:1px solid var(--line);border-radius:7px;padding:0 10px"><select id="area" onchange="renderWorkers()" style="min-height:40px;border:1px solid var(--line);border-radius:7px"></select></div></div>
+        <div id="workers" class="grid3"></div>
+      </div>
+    </div>
+
+    <div id="custHome" class="custSec" style="display:none">
+      <div id="custBookings" class="list"></div>
+    </div>
+
+    <div id="custProfile" class="custSec" style="display:none">
+      <div class="field"><label>Name</label><input id="cProfileName"></div>
+      <div class="field"><label>Phone (verified)</label><input id="cProfilePhone" maxlength="10" disabled style="opacity:.65"></div>
+      <button class="btn primary" onclick="saveCustomerProfile()">Update profile</button>
+    </div>
+    <div id="custAddress" class="custSec" style="display:none">
+      <div class="field"><label>Address</label><textarea id="cAddress" placeholder="House, street, landmark"></textarea></div>
+      <div class="field"><label>City</label><input id="cCity" value="Ambikapur"></div>
+      <button class="btn primary" onclick="saveCustomerProfile()">Save address</button>
+    </div>
+    <div id="custSettings" class="custSec" style="display:none">
+      <div class="card"><div class="row"><div><b>Notifications</b><div class="meta">Booking updates and review reminders.</div></div><input id="cNotify" type="checkbox" checked></div></div>
+    </div>
+    <div id="custHelp" class="custSec" style="display:none">
+      <div class="chatBox" id="chatBox"></div>
+      <div class="row" style="margin-top:10px"><input id="chatInput" placeholder="Ask about booking, worker, refund..."><button class="btn dark" onclick="sendHelp()">Send</button></div>
+    </div>
+  </section>
+</div></main>
+
+<!-- ============ WORKER ============ -->
+<main id="worker" class="screen"><div class="wrap">
+  <section class="panel"><div class="head"><div><h2 class="title">Worker desk</h2><div class="sub">Register, get verified, go online, and share your live location.</div></div></div>
+    <div class="grid2">
+      <div>
+        <div id="workerLoginArea">
+          <h3>Login</h3>
+          <div class="field"><label>Worker phone</label><input id="wLoginPhone" maxlength="10"></div>
+          <button class="btn dark" onclick="sendWorkerOtp()">Send verification code</button>
+          <div id="workerOtpBox" style="display:none;margin-top:12px">
+            <div class="field"><label>Enter 6-digit code sent to your phone</label><input id="wOtp" maxlength="6" placeholder="123456"></div>
+            <div class="row"><button class="btn dark" onclick="verifyWorkerOtp()">Verify &amp; continue</button><button class="btn soft" onclick="sendWorkerOtp()">Resend code</button></div>
+          </div>
+        </div>
+        <div id="workerLoggedInBar" class="card row" style="display:none">
+          <div><b>Phone verified</b><div class="meta" id="workerLoggedPhone"></div></div>
+          <button class="btn danger" onclick="workerLogout()">Logout</button>
+        </div>
+        <div id="workerRegisterArea" style="display:none">
+          <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+          <h3>New worker registration</h3>
+          <div class="meta" style="margin-bottom:10px">Your phone is already verified. Fill in your details below to submit for admin verification.</div>
+          <div class="field"><label>Name</label><input id="rName"></div>
+          <div class="field"><label>Service</label><select id="rService"></select></div>
+          <div class="field"><label>Area</label><input id="rArea" value="Ambikapur"></div>
+          <div class="field"><label>Charge</label><input id="rCharge" type="number" placeholder="300"></div>
+          <div class="field"><label>Experience</label><textarea id="rExp"></textarea></div>
+          <div class="field"><label>Photo</label><input id="rPhoto" type="file" accept="image/png,image/jpeg,image/webp"></div>
+          <div class="field"><label>ID proof</label><input id="rId" type="file" accept="image/png,image/jpeg,image/webp,application/pdf"></div>
+          <button class="btn primary" onclick="workerRegister()">Submit for verification</button>
+        </div>
+      </div>
+      <div>
+        <div class="shareBar">
+          <div class="left"><span id="shareDot" class="dot"></span><div><b id="shareLabel">Live location off</b><div class="meta" style="color:rgba(255,255,255,.7)">Turn on so customers can track you en route</div></div></div>
+          <button id="shareToggle" class="toggle" onclick="toggleShareLocation()"></button>
+        </div>
+        <div class="statusLine">
+          <div class="stat"><strong id="wJobs">0</strong><span>Bookings</span></div>
+          <div class="stat"><strong id="wEarn">Rs.0</strong><span>Earnings</span></div>
+          <div class="stat"><strong id="wRating">0</strong><span>Rating</span></div>
+          <div class="stat"><strong id="wStatus">-</strong><span>Status</span></div>
+        </div>
+        <div id="workerProfile" class="card" style="margin-top:14px"></div>
+        <div id="workerMap" class="mapBoxSm" style="margin-top:12px"></div>
+        <div id="workerSteps" class="list" style="margin-top:12px"></div>
+        <h3>Incoming / active bookings</h3>
+        <div id="workerBookings" class="list"></div>
+      </div>
+    </div>
+  </section>
+</div></main>
+
+<!-- ============ ADMIN ============ -->
+<main id="admin" class="screen active"><div class="wrap">
+  <section class="panel" id="adminLogin">
+    <div class="head"><div><h2 class="title">Admin desk</h2><div class="sub">Enter the admin API key to open the console.</div></div></div>
+    <div class="field"><label>Admin API key</label><input id="adminKey" type="password"></div>
+    <button class="btn dark" onclick="adminLogin()">Open console</button>
+  </section>
+  <div id="adminDash" style="display:none">
+    <section class="panel"><div class="statusLine">
+      <div class="stat"><strong id="aCustomers">0</strong><span>Customers</span></div>
+      <div class="stat"><strong id="aWorkers">0</strong><span>Workers</span></div>
+      <div class="stat"><strong id="aPending">0</strong><span>Pending verification</span></div>
+      <div class="stat"><strong id="aBookings">0</strong><span>Bookings</span></div>
+    </div></section>
+    <section class="panel"><div class="head"><div><h2 class="title">Live worker map</h2><div class="sub">Every worker's current position. Green = online, amber = busy, grey = offline.</div></div></div>
+      <div id="adminMap" class="mapBox"></div>
+    </section>
+    <section class="panel"><div class="head"><div><h2 class="title">Worker applications</h2></div></div><div id="adminApps" class="list"></div></section>
+    <section class="panel"><div class="head"><div><h2 class="title">Bookings</h2></div></div><div id="adminBookings" class="list"></div></section>
+  </div>
+</div></main>
+
+<!-- ============ MODALS ============ -->
+<div id="bookingModal" class="modalCover"><div class="modal"><div class="modalHead"><h2 class="title">Confirm booking</h2><button class="btn soft" onclick="closeModal()">Close</button></div>
+  <div class="modalBody grid2">
+    <div>
+      <div id="bookWorker" class="card"></div>
+      <div class="summary" style="margin-top:12px">
+        <div class="sum"><span>Service</span><b id="sBase"></b></div>
+        <div class="sum"><span>Platform fee</span><b id="sFee"></b></div>
+        <div class="sum total"><span>Total</span><span id="sTotal"></span></div>
+      </div>
+      <div class="meta" style="margin-top:10px" id="geoNote">Locating you so your worker can find you...</div>
+    </div>
+    <div>
+      <div class="field"><label>Name</label><input id="bName"></div>
+      <div class="field"><label>Phone (verified)</label><input id="bPhone" maxlength="10" disabled style="opacity:.65"></div>
+      <div class="field"><label>Address</label><textarea id="bAddress"></textarea></div>
+      <div class="field"><label>Issue</label><input id="bNote"></div>
+      <div class="row"><button class="btn primary" id="rzpBtn" onclick="payRazorpay()">Pay Razorpay</button><button class="btn dark" onclick="book('cash')">Book cash</button></div>
+      <button class="btn soft" style="width:100%;margin-top:10px" onclick="book('upi')">Book UPI</button>
+    </div>
+  </div>
+</div></div>
+
+<div id="trackModal" class="modalCover"><div class="modal"><div class="modalHead"><h2 class="title">Track your worker</h2><button class="btn soft" onclick="closeTrack()">Close</button></div>
+  <div class="modalBody">
+    <div class="trackHead">
+      <div><div class="name" id="trackWho">-</div><div class="meta" id="trackStatus">-</div></div>
+      <div class="trackStats">
+        <div><strong id="trackDist">-</strong><span>KM away</span></div>
+        <div><strong id="trackEta">-</strong><span>ETA mins</span></div>
+      </div>
+    </div>
+    <div id="trackMap" class="mapBox"></div>
+    <div class="row" style="margin-top:12px"><a class="btn soft" id="trackCall" href="#">Call worker</a><span class="meta">Updates every 5 seconds.</span></div>
+  </div>
+</div></div>
+
+<div id="reviewModal" class="modalCover"><div class="modal"><div class="modalHead"><h2 class="title">Review worker</h2><button class="btn soft" onclick="closeReview()">Close</button></div>
+  <div class="modalBody">
+    <div class="field"><label>Stars</label><select id="revStars"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
+    <div class="tags"><label class="tag"><input type="checkbox" value="Good behaviour"> Good behaviour</label><label class="tag"><input type="checkbox" value="Excellent service"> Excellent service</label><label class="tag"><input type="checkbox" value="On time"> On time</label></div>
+    <div class="field"><label>Comment</label><textarea id="revComment"></textarea></div>
+    <button class="btn primary" onclick="submitReview()">Submit review</button>
+  </div>
+</div></div>
+
+<script>
+const qs=id=>document.getElementById(id);
+const money=v=>"Rs. "+Number(v||0).toLocaleString("en-IN");
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const AMBI={lat:23.1226,lng:83.1956};
+
+let services=[],workers=[],settings={},selected="",currentWorker=null;
+let currentCustomer=JSON.parse(localStorage.fixitCustomer||"{}");
+let customerToken=localStorage.fixitCustomerToken||"";
+let workerPhone=localStorage.fixitWorkerPhone||"";
+let workerToken=localStorage.fixitWorkerToken||"";
+let adminKey=localStorage.fixitAdminKey||"";
+let customerBookings=[],reviewBookingId=new URLSearchParams(location.search).get("review");
+let bookingGeo=null,shareWatchId=null,trackTimer=null,trackMapObj=null,trackMarkers={};
+let workerMapObj=null,workerMapMarker=null,adminMapObj=null,adminMapMarkers={};
+
+async function api(p,o={}){let r=await fetch(p,o),d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"API failed");return d}
+function headers(admin=false){let h={"Content-Type":"application/json"};if(admin)h["x-api-key"]=adminKey;return h}
+function custHeaders(){return {"Content-Type":"application/json","Authorization":"Bearer "+customerToken}}
+function workHeaders(){return {"Content-Type":"application/json","Authorization":"Bearer "+workerToken}}
+function toast(m){qs("toast").textContent=m;qs("toast").classList.add("show");setTimeout(()=>qs("toast").classList.remove("show"),2800)}
+
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  qs(id).classList.add("active");
+  ["Landing","Customer","Worker","Admin"].forEach(n=>{let t=qs("tab"+n);if(t)t.classList.toggle("active",n.toLowerCase()==id)});
+  if(id=="customer"){renderCustomerAuthState();loadCustomer();}
+  if(id=="worker"){renderWorkerAuthState();if(workerToken)workerDashboard();}
+  if(id=="admin"&&adminKey)loadAdmin();
+}
+
+async function boot(){
+  let d=await api("/api/bootstrap");
+  services=d.services;workers=d.workers;settings=d.settings;
+  qs("sync").textContent="Live";qs("syncDot").classList.add("live");
+  qs("mWorkers").textContent=workers.length;
+  qs("mOnline").textContent=workers.filter(w=>w.status=="Online").length;
+  
+  if(reviewBookingId)openReview(reviewBookingId);
+}
+boot().catch(e=>toast(e.message));
+
+function renderPreview(){
+  qs("workersPreview").innerHTML=workers.slice(0,3).map(w=>`<article class="card"><div class="row"><div class="row"><div class="avatar">${avatar(w)}</div><div><div class="name">${esc(w.name)}</div><div class="meta">${esc(w.service)} · ${esc(w.area)}</div></div></div><span class="tag ${w.status=="Online"?"green":"amber"}">${esc(w.status)}</span></div></article>`).join("")||'<div class="empty">No workers yet.</div>';
+}
+
+function renderServices(){
+  qs("services").innerHTML=["",...services].map(s=>`<button class="chip ${selected==s?"active":""}" onclick="selected='${s}';renderServices();renderWorkers()"><span class="icon">${s?s.slice(0,2).toUpperCase():"ALL"}</span><b>${esc(s||"All services")}</b><div class="meta">${workers.filter(w=>!s||w.service==s).length} workers</div></button>`).join("");
+}
+function renderAreas(){qs("area").innerHTML='<option value="">All areas</option>'+[...new Set(workers.map(w=>w.area))].map(a=>`<option>${esc(a)}</option>`).join("")}
+function avatar(w){return w.photoUrl?`<img src="${esc(w.photoUrl)}">`:(w.service||"WK").slice(0,2).toUpperCase()}
+
+function renderWorkers(){
+  let q=(qs("search").value||"").toLowerCase(),area=qs("area").value;
+  let list=workers.filter(w=>(!selected||w.service==selected)&&(!area||w.area==area)&&[w.name,w.service,w.area,w.exp].join(" ").toLowerCase().includes(q));
+  qs("workerSub").textContent=`${list.length} workers found`;
+  qs("workers").innerHTML=list.length?list.map(w=>{
+    let fee=Math.round(w.charge*(settings.commissionRate||.1)),total=w.charge+fee;
+    return `<article class="card worker"><div class="row"><div class="row"><div class="avatar">${avatar(w)}</div><div><div class="name">${esc(w.name)}</div><div class="meta">${esc(w.service)} · ${esc(w.area)}</div></div></div><span class="tag ${w.status=="Online"?"green":"amber"}">${esc(w.status)}</span></div><div class="tags"><span class="tag green">Verified</span><span class="tag">${w.rating} star</span><span class="tag blue">Location live</span></div><div class="exp">${esc(w.exp)}</div><div class="foot"><div><div class="price">${money(total)}</div><div class="meta">incl. platform fee</div></div><button class="btn primary" ${w.status!="Online"?"disabled":""} onclick="openBooking(${w.id})">Book</button></div></article>`;
+  }).join(""):'<div class="empty" style="grid-column:1/-1">No worker found.</div>';
+}
+
+function fillCustomer(){
+  qs("cName").value=currentCustomer.name||"";qs("cPhone").value=currentCustomer.phone||"";
+  qs("cAddress").value=currentCustomer.address||"";qs("cCity").value=currentCustomer.city||"Ambikapur";
+  qs("cProfileName").value=currentCustomer.name||"";qs("cProfilePhone").value=currentCustomer.phone||"";
+}
+function custSection(id){document.querySelectorAll(".custSec").forEach(s=>s.style.display="none");qs(id).style.display="block"}
+function toggleCustMenu(){qs("custMenu").classList.toggle("open")}
+
+function renderCustomerAuthState(){
+  let loggedIn=Boolean(customerToken&&currentCustomer.phone);
+  qs("custLoginArea").style.display=loggedIn?"none":"block";
+  qs("custLoggedInBar").style.display=loggedIn?"flex":"none";
+  if(loggedIn){qs("custLoggedName").textContent=currentCustomer.name||"Customer";qs("custLoggedPhone").textContent=currentCustomer.phone;}
+}
+async function sendCustomerOtp(){
+  let phone=qs("cPhone").value.replace(/\D/g,"");
+  if(phone.length!==10){toast("Enter a valid 10 digit phone number");return}
+  let d=await api("/api/customer/otp/request",{method:"POST",headers:headers(),body:JSON.stringify({phone})});
+  qs("custOtpBox").style.display="block";
+  toast(d.devOtp?("Dev mode - your code is "+d.devOtp):d.message);
+}
+async function verifyCustomerOtp(){
+  let phone=qs("cPhone").value.replace(/\D/g,""),name=qs("cName").value,otp=qs("cOtp").value.trim();
+  let d=await api("/api/customer/otp/verify",{method:"POST",headers:headers(),body:JSON.stringify({phone,otp,name})});
+  customerToken=d.token;localStorage.fixitCustomerToken=customerToken;
+  currentCustomer=d.customer;localStorage.fixitCustomer=JSON.stringify(currentCustomer);
+  qs("cOtp").value="";qs("custOtpBox").style.display="none";
+  fillCustomer();renderCustomerAuthState();toast("Phone verified");loadCustomer();
+}
+function customerLogout(){
+  customerToken="";currentCustomer={};
+  delete localStorage.fixitCustomerToken;delete localStorage.fixitCustomer;
+  qs("custBookings").innerHTML='<div class="empty">Login to see bookings.</div>';
+  fillCustomer();renderCustomerAuthState();toast("Logged out");
+}
+async function saveCustomerProfile(){
+  if(!customerToken){toast("Verify your phone first");return}
+  let c={name:qs("cProfileName").value||qs("cName").value,address:qs("cAddress").value,city:qs("cCity").value,notification:qs("cNotify").checked};
+  let d=await api("/api/customer/profile",{method:"POST",headers:custHeaders(),body:JSON.stringify(c)});
+  currentCustomer=d.customer;localStorage.fixitCustomer=JSON.stringify(currentCustomer);
+  fillCustomer();toast("Profile saved");
+}
+
+async function loadCustomer(){
+  fillCustomer();
+  if(!customerToken||!currentCustomer.phone){qs("custBookings").innerHTML='<div class="empty">Verify your phone to see bookings.</div>';return}
+  let d=await api("/api/customer/bookings",{headers:custHeaders()});
+  customerBookings=d.bookings;qs("mBookings").textContent=d.bookings.length;
+  qs("custBookings").innerHTML=bookingCards(d.bookings,true);
+}
+
+function bookingCards(list){
+  if(!list.length)return'<div class="empty">No bookings yet.</div>';
+  const trackable=["accepted","on_the_way","requested"];
+  return [...list].reverse().map(b=>`<article class="card"><div class="row"><div><div class="name">${esc(b.service)} with ${esc(b.workerName)}</div><div class="meta">${esc(b.customerAddress||"")} · ${esc(b.time||"")}</div><div class="tags"><span class="tag blue">${esc(b.status)}</span><span class="tag">${esc(b.paymentMethod)} / ${esc(b.paymentStatus)}</span></div></div><b>${money(b.total)}</b></div><div class="row" style="margin-top:10px">${trackable.includes(b.status)?`<button class="btn amberBtn" onclick="openTrack(${b.id})">Track live</button>`:""}<a class="btn soft" href="tel:${esc(b.workerPhone)}">Call worker</a>${b.status=="completed"?`<button class="btn primary" onclick="openReview(${b.id})">Review</button>`:""}</div></article>`).join("");
+}
+
+/* ---- booking modal ---- */
+function openBooking(id){
+  if(!customerToken){toast("Verify your phone number first to book a worker");show("customer");custSection("custBrowse");return}
+  currentWorker=workers.find(w=>w.id==id);
+  let fee=Math.round(currentWorker.charge*(settings.commissionRate||.1)),total=currentWorker.charge+fee;
+  qs("bName").value=currentCustomer.name||"";qs("bPhone").value=currentCustomer.phone||"";qs("bAddress").value=currentCustomer.address||"";
+  qs("bookWorker").innerHTML=`<div class="row"><div class="avatar">${avatar(currentWorker)}</div><div><div class="name">${esc(currentWorker.name)}</div><div class="meta">${esc(currentWorker.service)} · ${esc(currentWorker.area)} · ${currentWorker.rating} star</div></div></div>`;
+  qs("sBase").textContent=money(currentWorker.charge);qs("sFee").textContent=money(fee);qs("sTotal").textContent=money(total);
+  qs("rzpBtn").disabled=!settings.razorpayEnabled;
+  bookingGeo=null;
+  qs("geoNote").textContent="Locating you so your worker can find you...";
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>{bookingGeo={lat:pos.coords.latitude,lng:pos.coords.longitude};qs("geoNote").textContent="Your location is ready to share for live tracking.";},
+      ()=>{qs("geoNote").textContent="Location permission denied — tracking will use the workshop's area centre instead.";},
+      {timeout:6000}
+    );
+  } else {
+    qs("geoNote").textContent="This browser can't share location — tracking will use the area centre.";
+  }
+  qs("bookingModal").classList.add("open");
+}
+function closeModal(){qs("bookingModal").classList.remove("open")}
+function customerFromModal(){return{name:qs("bName").value,phone:qs("bPhone").value,address:qs("bAddress").value,city:qs("cCity").value,note:qs("bNote").value,lat:bookingGeo?bookingGeo.lat:AMBI.lat,lng:bookingGeo?bookingGeo.lng:AMBI.lng}}
+
+async function book(method){
+  let d=await api("/api/bookings",{method:"POST",headers:custHeaders(),body:JSON.stringify({workerId:currentWorker.id,customer:customerFromModal(),paymentMethod:method})});
+  closeModal();
+  currentCustomer={name:d.booking.customerName,phone:d.booking.customerPhone,address:d.booking.customerAddress,city:d.booking.customerCity};
+  localStorage.fixitCustomer=JSON.stringify(currentCustomer);
+  toast("Booking sent to worker");
+  show("customer");custSection("custHome");
+}
+
+async function payRazorpay(){
+  let total=currentWorker.charge+Math.round(currentWorker.charge*(settings.commissionRate||.1));
+  let o=await api("/api/create-order",{method:"POST",headers:custHeaders(),body:JSON.stringify({amount:total*100,receipt:"fixit_"+Date.now()})});
+  new Razorpay({key:o.key_id,amount:o.amount,currency:o.currency,order_id:o.order_id,name:settings.merchantName||"FixIt",description:currentWorker.service+" booking",
+    handler:async r=>{await api("/api/verify-payment",{method:"POST",headers:custHeaders(),body:JSON.stringify(r)});await book("razorpay")},
+    modal:{ondismiss:()=>toast("Payment cancelled")}}).open();
+}
+
+/* ---- live tracking (customer side) ---- */
+function pinDivIcon(cls,glyph){return L.divIcon({className:"",html:`<div class="${cls}"><span>${glyph}</span></div>`,iconSize:[30,30],iconAnchor:[15,15]})}
+
+function openTrack(bookingId){
+  qs("trackModal").classList.add("open");
+  if(!trackMapObj){
+    trackMapObj=L.map("trackMap");
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"&copy; OpenStreetMap &copy; CARTO",subdomains:"abcd",maxZoom:19}).addTo(trackMapObj);
+  }
+  setTimeout(()=>trackMapObj.invalidateSize(),80);
+  pollTrack(bookingId);
+  clearInterval(trackTimer);
+  trackTimer=setInterval(()=>pollTrack(bookingId),5000);
+}
+function closeTrack(){qs("trackModal").classList.remove("open");clearInterval(trackTimer)}
+
+async function pollTrack(bookingId){
+  try{
+    let d=await api(`/api/bookings/${bookingId}/track`);
+    qs("trackWho").textContent=`${d.service} · ${d.workerName}`;
+    qs("trackStatus").textContent=d.status.replace(/_/g," ");
+    qs("trackDist").textContent=d.distanceKm ?? "-";
+    qs("trackEta").textContent=d.etaMinutes ?? "-";
+    qs("trackCall").href="tel:"+(d.workerPhone||"");
+    let wl=d.workerLocation||AMBI, cl=d.customerLocation||AMBI;
+    if(!trackMarkers.worker){
+      trackMarkers.worker=L.marker([wl.lat,wl.lng],{icon:pinDivIcon("vanIcon","🔧")}).addTo(trackMapObj);
+      trackMarkers.cust=L.marker([cl.lat,cl.lng],{icon:pinDivIcon("pinIcon","🏠")}).addTo(trackMapObj);
+      trackMarkers.line=L.polyline([[wl.lat,wl.lng],[cl.lat,cl.lng]],{color:"#f2a71b",weight:3,dashArray:"6 8"}).addTo(trackMapObj);
+      trackMapObj.fitBounds(trackMarkers.line.getBounds(),{padding:[36,36]});
+    } else {
+      trackMarkers.worker.setLatLng([wl.lat,wl.lng]);
+      trackMarkers.cust.setLatLng([cl.lat,cl.lng]);
+      trackMarkers.line.setLatLngs([[wl.lat,wl.lng],[cl.lat,cl.lng]]);
+    }
+  }catch(e){ /* booking may have closed; keep last known view */ }
+}
+
+/* ---- worker desk ---- */
+async function fileData(input){
+  let f=input.files[0];if(!f)return null;
+  if(f.size>2500000)throw Error("File under 2.5 MB only");
+  return await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res({name:f.name,type:f.type,dataUrl:r.result});r.onerror=()=>rej(Error("File read failed"));r.readAsDataURL(f)});
+}
+function renderWorkerAuthState(){
+  let loggedIn=Boolean(workerToken&&workerPhone);
+  qs("workerLoginArea").style.display=loggedIn?"none":"block";
+  qs("workerLoggedInBar").style.display=loggedIn?"flex":"none";
+  if(loggedIn)qs("workerLoggedPhone").textContent=workerPhone;
+}
+async function sendWorkerOtp(){
+  let phone=qs("wLoginPhone").value.replace(/\D/g,"");
+  if(phone.length!==10){toast("Enter a valid 10 digit phone number");return}
+  let d=await api("/api/worker/otp/request",{method:"POST",headers:headers(),body:JSON.stringify({phone})});
+  qs("workerOtpBox").style.display="block";
+  toast(d.devOtp?("Dev mode - your code is "+d.devOtp):d.message);
+}
+async function verifyWorkerOtp(){
+  let phone=qs("wLoginPhone").value.replace(/\D/g,""),otp=qs("wOtp").value.trim();
+  let d=await api("/api/worker/otp/verify",{method:"POST",headers:headers(),body:JSON.stringify({phone,otp})});
+  workerToken=d.token;workerPhone=phone;
+  localStorage.fixitWorkerToken=workerToken;localStorage.fixitWorkerPhone=workerPhone;
+  qs("wOtp").value="";qs("workerOtpBox").style.display="none";
+  renderWorkerAuthState();toast("Phone verified");workerDashboard();
+}
+async function workerRegister(){
+  if(!workerToken){toast("Verify your phone first");return}
+  let payload={name:qs("rName").value,service:qs("rService").value,area:qs("rArea").value,charge:qs("rCharge").value,exp:qs("rExp").value,photo:await fileData(qs("rPhoto")),idProof:await fileData(qs("rId"))};
+  let d=await api("/api/worker/register",{method:"POST",headers:workHeaders(),body:JSON.stringify(payload)});
+  toast("Submitted. Admin verification pending.");workerDashboard();
+}
+async function workerDashboard(){
+  if(!workerToken)return;
+  let d=await api("/api/worker/dashboard",{headers:workHeaders()});
+  let w=d.worker||d.application||{};
+  qs("workerRegisterArea").style.display=(!d.worker&&!d.application)?"block":"none";
+  qs("wJobs").textContent=d.bookings.length;
+  qs("wEarn").textContent=money(d.bookings.filter(b=>b.status=="completed").reduce((s,b)=>s+b.base,0));
+  qs("wRating").textContent=w.rating||"-";qs("wStatus").textContent=w.verificationStatus||w.status||"-";
+  qs("workerProfile").innerHTML=d.worker?`<div class="row"><div><div class="name">${esc(w.name)}</div><div class="meta">${esc(w.service)} · ${esc(w.area)} · ${esc(w.phone)}</div></div><select onchange="updateWorkerStatus(this.value)"><option>${esc(w.status)}</option><option>Online</option><option>Offline</option><option>Busy</option></select></div>`:`<div class="empty">Verification ${esc(w.verificationStatus||"not started")}</div>`;
+  qs("workerSteps").innerHTML=stepsHtml(w);
+  qs("workerBookings").innerHTML=workerBookingHtml(d.bookings);
+  if(d.worker)drawWorkerMap(d.worker.lat,d.worker.lng);
+}
+function stepsHtml(w){let verified=w.verificationStatus=="verified";return["Personal details","Documents uploaded","Admin verification","Dashboard active"].map((s,i)=>`<div class="card row"><b>${s}</b><span class="tag ${i<2||verified?"green":"amber"}">${i<2||verified?"Done":"Pending"}</span></div>`).join("")}
+async function updateWorkerStatus(status){await api("/api/worker/profile",{method:"PATCH",headers:workHeaders(),body:JSON.stringify({status})});workerDashboard();boot()}
+function workerLogout(){
+  if(shareWatchId){navigator.geolocation.clearWatch(shareWatchId);shareWatchId=null}
+  workerPhone="";workerToken="";delete localStorage.fixitWorkerPhone;delete localStorage.fixitWorkerToken;
+  qs("wLoginPhone").value="";qs("workerProfile").innerHTML='<div class="empty">Login to open your worker dashboard.</div>';qs("workerSteps").innerHTML="";qs("workerBookings").innerHTML='<div class="empty">No incoming bookings.</div>';
+  qs("wJobs").textContent="0";qs("wEarn").textContent=money(0);qs("wRating").textContent="-";qs("wStatus").textContent="-";renderWorkerAuthState();toast("Worker logged out");
+}
+function workerBookingHtml(list){
+  if(!list.length)return'<div class="empty">No incoming bookings.</div>';
+  return [...list].reverse().map(b=>`<article class="card"><div class="row"><div><div class="name">${esc(b.customerName)} - ${esc(b.service)}</div><div class="meta">${esc(b.customerAddress)} · ${esc(b.note||"")}</div><div class="tags"><span class="tag blue">${esc(b.status)}</span><span class="tag">${money(b.total)}</span></div></div><a class="btn soft" href="tel:${esc(b.customerPhone)}">Call</a></div><div class="row" style="margin-top:10px"><button class="btn primary" onclick="bookingAction(${b.id},'accept')">Accept</button><button class="btn dark" onclick="bookingAction(${b.id},'start')">On way</button><button class="btn warn" onclick="bookingAction(${b.id},'complete')">Done</button></div></article>`).join("");
+}
+async function bookingAction(id,act){
+  let d=await api(`/api/bookings/${id}/${act}`,{method:"POST",headers:workHeaders()});
+  if(act=="complete"&&d.whatsappReviewLink)window.open(d.whatsappReviewLink,"_blank");
+  toast(act=="complete"?"Completed. WhatsApp review link opened.":"Booking updated");
+  workerDashboard();boot();
+}
+
+/* ---- worker live location sharing ---- */
+function toggleShareLocation(){
+  if(shareWatchId){
+    navigator.geolocation.clearWatch(shareWatchId);shareWatchId=null;
+    qs("shareToggle").classList.remove("on");qs("shareDot").classList.remove("live");qs("shareLabel").textContent="Live location off";
+    return;
+  }
+  if(!navigator.geolocation){toast("Geolocation not supported on this device");return}
+  if(!workerToken){toast("Login as a worker first");return}
+  qs("shareToggle").classList.add("on");qs("shareDot").classList.add("live");qs("shareLabel").textContent="Sharing live location";
+  let last=0;
+  shareWatchId=navigator.geolocation.watchPosition(async pos=>{
+    let now=Date.now();if(now-last<4000)return;last=now;
+    try{
+      await api("/api/worker/profile",{method:"PATCH",headers:workHeaders(),body:JSON.stringify({lat:pos.coords.latitude,lng:pos.coords.longitude})});
+      drawWorkerMap(pos.coords.latitude,pos.coords.longitude);
+    }catch(e){}
+  },()=>toast("Could not read your location"),{enableHighAccuracy:true,maximumAge:5000});
+}
+function drawWorkerMap(lat,lng){
+  if(lat==null||lng==null)return;
+  if(!workerMapObj){
+    workerMapObj=L.map("workerMap",{zoomControl:false,attributionControl:false});
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19}).addTo(workerMapObj);
+    workerMapObj.setView([lat,lng],14);
+  }
+  setTimeout(()=>workerMapObj.invalidateSize(),80);
+  if(!workerMapMarker){workerMapMarker=L.marker([lat,lng],{icon:pinDivIcon("vanIcon","🔧")}).addTo(workerMapObj)}
+  else workerMapMarker.setLatLng([lat,lng]);
+  workerMapObj.panTo([lat,lng]);
+}
+
+/* ---- customer help chat ---- */
+async function sendHelp(){
+  if(!customerToken){toast("Verify your phone first to chat with support");return}
+  let msg=qs("chatInput").value.trim();if(!msg)return;
+  qs("chatBox").innerHTML+=`<div class="chatMsg me">${esc(msg)}</div>`;
+  let d=await api("/api/help/chat",{method:"POST",headers:custHeaders(),body:JSON.stringify({message:msg})});
+  qs("chatBox").innerHTML+=`<div class="chatMsg">${esc(d.reply)}</div>`;
+  qs("chatInput").value="";qs("chatBox").scrollTop=qs("chatBox").scrollHeight;
+}
+
+/* ---- admin ---- */
+async function adminLogin(){
+  adminKey=qs("adminKey").value;localStorage.fixitAdminKey=adminKey;
+  await api("/api/admin/login",{method:"POST",headers:headers(true),body:"{}"});
+  loadAdmin();
+}
+async function loadAdmin(){
+  let d=await api("/api/admin/dashboard",{headers:headers(true)});
+  qs("adminLogin").style.display="none";qs("adminDash").style.display="block";
+  qs("aCustomers").textContent=d.customers.length;qs("aWorkers").textContent=d.workers.length;
+  qs("aPending").textContent=d.workerApplications.filter(a=>a.verificationStatus=="pending").length;
+  qs("aBookings").textContent=d.bookings.length;
+  qs("adminApps").innerHTML=d.workerApplications.length?d.workerApplications.map(a=>`<div class="card row"><div><div class="name">${esc(a.name)}</div><div class="meta">${esc(a.service)} · ${esc(a.phone)} · ${esc(a.verificationStatus)}</div><a href="${esc(a.idUrl)}" target="_blank">View ID</a></div>${a.verificationStatus=="pending"?`<div><button class="btn primary" onclick="reviewApp(${a.id},'verify')">Verify</button> <button class="btn danger" onclick="reviewApp(${a.id},'reject')">Reject</button></div>`:""}</div>`).join(""):'<div class="empty">No applications</div>';
+  qs("adminBookings").innerHTML=bookingCards(d.bookings);
+  drawAdminMap(d.workers);
+}
+async function reviewApp(id,action){
+  await api(`/api/admin/worker-applications/${id}/${action}`,{method:"POST",headers:headers(true),body:JSON.stringify({reason:"Documents not clear"})});
+  toast("Application updated");loadAdmin();boot();
+}
+function drawAdminMap(list){
+  if(!adminMapObj){
+    adminMapObj=L.map("adminMap").setView([AMBI.lat,AMBI.lng],12);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"&copy; OpenStreetMap &copy; CARTO",subdomains:"abcd",maxZoom:19}).addTo(adminMapObj);
+  }
+  setTimeout(()=>adminMapObj.invalidateSize(),80);
+  let seen=new Set();
+  list.forEach(w=>{
+    if(w.lat==null||w.lng==null)return;
+    seen.add(w.id);
+    let cls=w.status=="Online"?"green":w.status=="Busy"?"amber":"grey";
+    let color=w.status=="Online"?"#0f7a6c":w.status=="Busy"?"#f2a71b":"#9aa4ad";
+    let html=`<div style="background:${color};color:#fff;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.3);font-size:11px;font-weight:800">${esc((w.name||"?").slice(0,1))}</div>`;
+    let icon=L.divIcon({className:"",html,iconSize:[28,28],iconAnchor:[14,14]});
+    if(adminMapMarkers[w.id]){adminMapMarkers[w.id].setLatLng([w.lat,w.lng]).setIcon(icon)}
+    else{
+      adminMapMarkers[w.id]=L.marker([w.lat,w.lng],{icon}).addTo(adminMapObj).bindPopup(`<b>${esc(w.name)}</b><br>${esc(w.service)} · ${esc(w.status)}`);
+    }
+  });
+  Object.keys(adminMapMarkers).forEach(id=>{if(!seen.has(Number(id))){adminMapObj.removeLayer(adminMapMarkers[id]);delete adminMapMarkers[id]}});
+}
+
+/* ---- reviews ---- */
+function openReview(id){reviewBookingId=id;qs("reviewModal").classList.add("open")}
+function closeReview(){qs("reviewModal").classList.remove("open")}
+async function submitReview(){
+  if(!customerToken){toast("Verify your phone first to leave a review");return}
+  let tags=[...document.querySelectorAll('#reviewModal input[type=checkbox]:checked')].map(x=>x.value);
+  await api("/api/reviews",{method:"POST",headers:custHeaders(),body:JSON.stringify({bookingId:reviewBookingId,rating:qs("revStars").value,tags,comment:qs("revComment").value})});
+  toast("Review submitted");closeReview();
+}
+</script>
+</body>
+</html>

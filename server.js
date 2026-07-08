@@ -114,7 +114,7 @@ function securityHeaders() {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://unpkg.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
-      "img-src 'self' data: https://*.tile.openstreetmap.org",
+      "img-src 'self' data: https://*.basemaps.cartocdn.com",
       "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self' https://api.razorpay.com",
       "frame-src https://api.razorpay.com"
