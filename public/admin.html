@@ -423,6 +423,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 </div></div>
 
 <script>
+try{sessionStorage.setItem("fixitSplashSeen","1")}catch(e){} // skip main-site splash if user lands here first
 /* ---- tap feedback: haptic + click sound + ripple (visual only) ---- */
 let __ac;
 function __tone(){
