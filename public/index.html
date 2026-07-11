@@ -259,7 +259,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
       <div class="heroText">
         <div class="eyebrow">Episkevi · Ambikapur</div>
         <h1>Professional Home Services At Your Doorstep</h1>
-        <p class="lead">Pick your side to continue. Homeowners verify their phone and book a trusted, verified pro. Workers verify their phone, get approved, and start taking jobs.</p>
+        <p class="lead">Pick your side to continue. Homeowners verify their email and book a trusted, verified pro. Workers verify their email, get approved, and start taking jobs.</p>
         <div class="liveStrip">
           <div><strong id="mWorkers">0</strong><span>Workers on the board</span></div>
           <div><strong id="mOnline">0</strong><span>Online right now</span></div>
@@ -296,7 +296,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
       <div class="tIcon svgIcon"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1V9.5"/></svg></div>
       <span class="code">I'M A CUSTOMER</span>
       <h3>Book a worker</h3>
-      <p>Browse verified electricians, plumbers, carpenters and more. Verify your phone, book in a tap, and watch your worker's live location until they arrive.</p>
+      <p>Browse verified electricians, plumbers, carpenters and more. Verify your email, book in a tap, and watch your worker's live location until they arrive.</p>
       <div class="go">Continue as customer <em>&rarr;</em></div>
     </article>
 
@@ -304,7 +304,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
       <div class="tIcon svgIcon"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6.6 6.6a1.5 1.5 0 0 0 2.1 2.1l6.6-6.6a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.1-2.1 2.4-2.4z"/></svg></div>
       <span class="code">I'M A WORKER</span>
       <h3>Take jobs</h3>
-      <p>Verify your phone, register with photo and ID proof, get approved by admin, then go online and start accepting jobs near you.</p>
+      <p>Verify your email, register with photo and ID proof, get approved by admin, then go online and start accepting jobs near you.</p>
       <div class="go">Continue as worker <em>&rarr;</em></div>
     </article>
   </div>
@@ -324,20 +324,20 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
     <button class="btn soft menuBtn" onclick="custSection('custHelp')">Help & support</button>
   </aside>
   <section class="panel" style="margin-top:0">
-    <div class="head"><div><h2 class="title">Customer desk</h2><div class="sub">Login with phone, book a verified worker, and track them live on the map.</div></div><button class="btn soft hamb" onclick="toggleCustMenu()">Menu</button></div>
+    <div class="head"><div><h2 class="title">Customer desk</h2><div class="sub">Login with email, book a verified worker, and track them live on the map.</div></div><button class="btn soft hamb" onclick="toggleCustMenu()">Menu</button></div>
 
     <div id="custBrowse" class="custSec">
       <div id="custLoginArea">
         <div class="field"><label>Name</label><input id="cName" placeholder="Your name"></div>
-        <div class="field"><label>Phone</label><input id="cPhone" maxlength="10" placeholder="10 digit phone"></div>
+        <div class="field"><label>Email</label><input id="cEmail" type="email" placeholder="you@example.com"></div>
         <button class="btn primary" onclick="sendCustomerOtp()">Send verification code</button>
         <div id="custOtpBox" style="display:none;margin-top:12px">
-          <div class="field"><label>Enter 6-digit code sent to your phone</label><input id="cOtp" maxlength="6" placeholder="123456"></div>
+          <div class="field"><label>Enter 6-digit code sent to your email</label><input id="cOtp" maxlength="6" placeholder="123456"></div>
           <div class="row"><button class="btn dark" onclick="verifyCustomerOtp()">Verify &amp; continue</button><button class="btn soft" onclick="sendCustomerOtp()">Resend code</button></div>
         </div>
       </div>
       <div id="custLoggedInBar" class="card row" style="display:none;margin-bottom:14px">
-        <div><b id="custLoggedName"></b><div class="meta">Signed in as <span id="custLoggedPhone"></span></div></div>
+        <div><b id="custLoggedName"></b><div class="meta">Signed in as <span id="custLoggedEmail"></span></div></div>
         <button class="btn danger" onclick="customerLogout()">Logout</button>
       </div>
       <div class="panel" style="padding:0;border:0;box-shadow:none;margin-top:18px">
@@ -360,7 +360,8 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 
     <div id="custProfile" class="custSec" style="display:none">
       <div class="field"><label>Name</label><input id="cProfileName"></div>
-      <div class="field"><label>Phone (verified)</label><input id="cProfilePhone" maxlength="10" disabled style="opacity:.65"></div>
+      <div class="field"><label>Email (verified)</label><input id="cProfileEmail" disabled style="opacity:.65"></div>
+      <div class="field"><label>Phone (contact number)</label><input id="cProfilePhone" maxlength="10" placeholder="10 digit phone"></div>
       <button class="btn primary" onclick="saveCustomerProfile()">Update profile</button>
     </div>
     <div id="custAddress" class="custSec" style="display:none">
@@ -385,22 +386,23 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
       <div>
         <div id="workerLoginArea">
           <h3>Login</h3>
-          <div class="field"><label>Worker phone</label><input id="wLoginPhone" maxlength="10"></div>
+          <div class="field"><label>Worker email</label><input id="wLoginEmail" type="email" placeholder="you@example.com"></div>
           <button class="btn dark" onclick="sendWorkerOtp()">Send verification code</button>
           <div id="workerOtpBox" style="display:none;margin-top:12px">
-            <div class="field"><label>Enter 6-digit code sent to your phone</label><input id="wOtp" maxlength="6" placeholder="123456"></div>
+            <div class="field"><label>Enter 6-digit code sent to your email</label><input id="wOtp" maxlength="6" placeholder="123456"></div>
             <div class="row"><button class="btn dark" onclick="verifyWorkerOtp()">Verify &amp; continue</button><button class="btn soft" onclick="sendWorkerOtp()">Resend code</button></div>
           </div>
         </div>
         <div id="workerLoggedInBar" class="card row" style="display:none">
-          <div><b>Phone verified</b><div class="meta" id="workerLoggedPhone"></div></div>
+          <div><b>Email verified</b><div class="meta" id="workerLoggedEmail"></div></div>
           <button class="btn danger" onclick="workerLogout()">Logout</button>
         </div>
         <div id="workerRegisterArea" style="display:none">
           <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
           <h3>New worker registration</h3>
-          <div class="meta" style="margin-bottom:10px">Your phone is already verified. Fill in your details below to submit for admin verification.</div>
+          <div class="meta" style="margin-bottom:10px">Your email is already verified. Fill in your details below to submit for admin verification.</div>
           <div class="field"><label>Name</label><input id="rName"></div>
+          <div class="field"><label>Contact phone</label><input id="rPhone" maxlength="10" placeholder="10 digit phone customers can call"></div>
           <div class="field"><label>Service</label><select id="rService"></select></div>
           <div class="field"><label>Area</label><input id="rArea" value="Ambikapur"></div>
           <div class="field"><label>Charge</label><input id="rCharge" type="number" placeholder="300"></div>
@@ -446,7 +448,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
     </div>
     <div>
       <div class="field"><label>Name</label><input id="bName"></div>
-      <div class="field"><label>Phone (verified)</label><input id="bPhone" maxlength="10" disabled style="opacity:.65"></div>
+      <div class="field"><label>Phone (contact number)</label><input id="bPhone" maxlength="10" placeholder="10 digit phone"></div>
       <div class="field"><label>Address</label><textarea id="bAddress"></textarea></div>
       <div class="field"><label>Issue</label><input id="bNote"></div>
       <div class="row"><button class="btn primary" id="rzpBtn" onclick="payRazorpay()">Pay Razorpay</button><button class="btn dark" onclick="book('cash')">Book cash</button></div>
@@ -559,7 +561,7 @@ const distanceKm=(a,b)=>{
 let services=[],workers=[],settings={},selected="",currentWorker=null;
 let currentCustomer=JSON.parse(localStorage.fixitCustomer||"{}");
 let customerToken=localStorage.fixitCustomerToken||"";
-let workerPhone=localStorage.fixitWorkerPhone||"";
+let workerEmail=localStorage.fixitWorkerEmail||"";
 let workerToken=localStorage.fixitWorkerToken||"";
 let customerBookings=[],reviewBookingId=new URLSearchParams(location.search).get("review");
 let customerGeo=JSON.parse(localStorage.fixitCustomerGeo||"null");
@@ -626,33 +628,33 @@ function useCustomerLocation(){
   },()=>{qs("customerGeoNote").textContent="Location permission denied. You can still book using the area centre.";toast("Location permission denied")},{enableHighAccuracy:true,timeout:8000});
 }
 function fillCustomer(){
-  qs("cName").value=currentCustomer.name||"";qs("cPhone").value=currentCustomer.phone||"";
+  qs("cName").value=currentCustomer.name||"";qs("cEmail").value=currentCustomer.email||"";
   qs("cAddress").value=currentCustomer.address||"";qs("cCity").value=currentCustomer.city||"Ambikapur";
-  qs("cProfileName").value=currentCustomer.name||"";qs("cProfilePhone").value=currentCustomer.phone||"";
+  qs("cProfileName").value=currentCustomer.name||"";qs("cProfileEmail").value=currentCustomer.email||"";qs("cProfilePhone").value=currentCustomer.phone||"";
 }
 function custSection(id){document.querySelectorAll(".custSec").forEach(s=>s.style.display="none");qs(id).style.display="block"}
 function toggleCustMenu(){qs("custMenu").classList.toggle("open")}
 
 function renderCustomerAuthState(){
-  let loggedIn=Boolean(customerToken&&currentCustomer.phone);
+  let loggedIn=Boolean(customerToken&&currentCustomer.email);
   qs("custLoginArea").style.display=loggedIn?"none":"block";
   qs("custLoggedInBar").style.display=loggedIn?"flex":"none";
-  if(loggedIn){qs("custLoggedName").textContent=currentCustomer.name||"Customer";qs("custLoggedPhone").textContent=currentCustomer.phone;}
+  if(loggedIn){qs("custLoggedName").textContent=currentCustomer.name||"Customer";qs("custLoggedEmail").textContent=currentCustomer.email;}
 }
 async function sendCustomerOtp(){
-  let phone=qs("cPhone").value.replace(/\D/g,"");
-  if(phone.length!==10){toast("Enter a valid 10 digit phone number");return}
-  let d=await api("/api/customer/otp/request",{method:"POST",headers:headers(),body:JSON.stringify({phone})});
+  let email=qs("cEmail").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast("Enter a valid email address");return}
+  let d=await api("/api/customer/otp/request",{method:"POST",headers:headers(),body:JSON.stringify({email})});
   qs("custOtpBox").style.display="block";
   toast(d.devOtp?("Dev mode - your code is "+d.devOtp):d.message);
 }
 async function verifyCustomerOtp(){
-  let phone=qs("cPhone").value.replace(/\D/g,""),name=qs("cName").value,otp=qs("cOtp").value.trim();
-  let d=await api("/api/customer/otp/verify",{method:"POST",headers:headers(),body:JSON.stringify({phone,otp,name})});
+  let email=qs("cEmail").value.trim(),name=qs("cName").value,otp=qs("cOtp").value.trim();
+  let d=await api("/api/customer/otp/verify",{method:"POST",headers:headers(),body:JSON.stringify({email,otp,name})});
   customerToken=d.token;localStorage.fixitCustomerToken=customerToken;
   currentCustomer=d.customer;localStorage.fixitCustomer=JSON.stringify(currentCustomer);
   qs("cOtp").value="";qs("custOtpBox").style.display="none";
-  fillCustomer();renderCustomerAuthState();toast("Phone verified");loadCustomer();
+  fillCustomer();renderCustomerAuthState();toast("Email verified");loadCustomer();
 }
 function customerLogout(){
   customerToken="";currentCustomer={};
@@ -661,8 +663,8 @@ function customerLogout(){
   fillCustomer();renderCustomerAuthState();toast("Logged out");
 }
 async function saveCustomerProfile(){
-  if(!customerToken){toast("Verify your phone first");return}
-  let c={name:qs("cProfileName").value||qs("cName").value,address:qs("cAddress").value,city:qs("cCity").value,notification:qs("cNotify").checked};
+  if(!customerToken){toast("Verify your email first");return}
+  let c={name:qs("cProfileName").value||qs("cName").value,phone:qs("cProfilePhone").value,address:qs("cAddress").value,city:qs("cCity").value,notification:qs("cNotify").checked};
   let d=await api("/api/customer/profile",{method:"POST",headers:custHeaders(),body:JSON.stringify(c)});
   currentCustomer=d.customer;localStorage.fixitCustomer=JSON.stringify(currentCustomer);
   fillCustomer();toast("Profile saved");
@@ -670,7 +672,7 @@ async function saveCustomerProfile(){
 
 async function loadCustomer(){
   fillCustomer();
-  if(!customerToken||!currentCustomer.phone){qs("custBookings").innerHTML='<div class="empty">Verify your phone to see bookings.</div>';return}
+  if(!customerToken||!currentCustomer.email){qs("custBookings").innerHTML='<div class="empty">Verify your email to see bookings.</div>';return}
   let d=await api("/api/customer/bookings",{headers:custHeaders()});
   customerBookings=d.bookings;qs("mBookings").textContent=d.bookings.length;
   qs("custBookings").innerHTML=bookingCards(d.bookings,true);
@@ -683,7 +685,7 @@ function bookingCards(list){
 }
 /* ---- booking modal ---- */
 function openBooking(id){
-  if(!customerToken){toast("Verify your phone number first to book a worker");show("customer");custSection("custBrowse");return}
+  if(!customerToken){toast("Verify your email first to book a worker");show("customer");custSection("custBrowse");return}
   currentWorker=workers.find(w=>w.id==id);
   let fee=Math.round(currentWorker.charge*(settings.commissionRate||.1)),total=currentWorker.charge+fee;
   qs("bName").value=currentCustomer.name||"";qs("bPhone").value=currentCustomer.phone||"";qs("bAddress").value=currentCustomer.address||"";
@@ -708,7 +710,7 @@ function customerFromModal(){return{name:qs("bName").value,phone:qs("bPhone").va
 async function book(method){
   let d=await api("/api/bookings",{method:"POST",headers:custHeaders(),body:JSON.stringify({workerId:currentWorker.id,customer:customerFromModal(),paymentMethod:method})});
   closeModal();
-  currentCustomer={name:d.booking.customerName,phone:d.booking.customerPhone,address:d.booking.customerAddress,city:d.booking.customerCity};
+  currentCustomer={...currentCustomer,name:d.booking.customerName,phone:d.booking.customerPhone,address:d.booking.customerAddress,city:d.booking.customerCity};
   localStorage.fixitCustomer=JSON.stringify(currentCustomer);
   toast("Booking sent to worker");
   show("customer");custSection("custHome");
@@ -767,29 +769,29 @@ async function fileData(input){
   return await new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res({name:f.name,type:f.type,dataUrl:r.result});r.onerror=()=>rej(Error("File read failed"));r.readAsDataURL(f)});
 }
 function renderWorkerAuthState(){
-  let loggedIn=Boolean(workerToken&&workerPhone);
+  let loggedIn=Boolean(workerToken&&workerEmail);
   qs("workerLoginArea").style.display=loggedIn?"none":"block";
   qs("workerLoggedInBar").style.display=loggedIn?"flex":"none";
-  if(loggedIn)qs("workerLoggedPhone").textContent=workerPhone;
+  if(loggedIn)qs("workerLoggedEmail").textContent=workerEmail;
 }
 async function sendWorkerOtp(){
-  let phone=qs("wLoginPhone").value.replace(/\D/g,"");
-  if(phone.length!==10){toast("Enter a valid 10 digit phone number");return}
-  let d=await api("/api/worker/otp/request",{method:"POST",headers:headers(),body:JSON.stringify({phone})});
+  let email=qs("wLoginEmail").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast("Enter a valid email address");return}
+  let d=await api("/api/worker/otp/request",{method:"POST",headers:headers(),body:JSON.stringify({email})});
   qs("workerOtpBox").style.display="block";
   toast(d.devOtp?("Dev mode - your code is "+d.devOtp):d.message);
 }
 async function verifyWorkerOtp(){
-  let phone=qs("wLoginPhone").value.replace(/\D/g,""),otp=qs("wOtp").value.trim();
-  let d=await api("/api/worker/otp/verify",{method:"POST",headers:headers(),body:JSON.stringify({phone,otp})});
-  workerToken=d.token;workerPhone=phone;
-  localStorage.fixitWorkerToken=workerToken;localStorage.fixitWorkerPhone=workerPhone;
+  let email=qs("wLoginEmail").value.trim(),otp=qs("wOtp").value.trim();
+  let d=await api("/api/worker/otp/verify",{method:"POST",headers:headers(),body:JSON.stringify({email,otp})});
+  workerToken=d.token;workerEmail=email;
+  localStorage.fixitWorkerToken=workerToken;localStorage.fixitWorkerEmail=workerEmail;
   qs("wOtp").value="";qs("workerOtpBox").style.display="none";
-  renderWorkerAuthState();toast("Phone verified");workerDashboard();
+  renderWorkerAuthState();toast("Email verified");workerDashboard();
 }
 async function workerRegister(){
-  if(!workerToken){toast("Verify your phone first");return}
-  let payload={name:qs("rName").value,service:qs("rService").value,area:qs("rArea").value,charge:qs("rCharge").value,exp:qs("rExp").value,photo:await fileData(qs("rPhoto")),idProof:await fileData(qs("rId"))};
+  if(!workerToken){toast("Verify your email first");return}
+  let payload={name:qs("rName").value,phone:qs("rPhone").value,service:qs("rService").value,area:qs("rArea").value,charge:qs("rCharge").value,exp:qs("rExp").value,photo:await fileData(qs("rPhoto")),idProof:await fileData(qs("rId"))};
   let d=await api("/api/worker/register",{method:"POST",headers:workHeaders(),body:JSON.stringify(payload)});
   toast("Submitted. Admin verification pending.");workerDashboard();
 }
@@ -800,7 +802,7 @@ async function workerDashboard(){
   qs("workerRegisterArea").style.display=(!d.worker&&!d.application)?"block":"none";
   qs("wJobs").textContent=d.bookings.length;
   qs("wEarn").textContent=money(d.bookings.filter(b=>b.status=="completed").reduce((s,b)=>s+b.base,0));
-  qs("wRating").textContent=w.rating||"-";qs("wStatus").textContent=w.verificationStatus||w.status||"-";
+  qs("wRating").textContent=w.rating?w.rating:"New";qs("wStatus").textContent=w.verificationStatus||w.status||"-";
   qs("workerProfile").innerHTML=d.worker?`<div class="row"><div><div class="name">${esc(w.name)}</div><div class="meta">${esc(w.service)} - ${esc(w.area)} - ${esc(w.phone)}</div></div><select id="wStatusSelect"><option>${esc(w.status)}</option><option>Online</option><option>Offline</option><option>Busy</option></select></div>`:`<div class="empty">Verification ${esc(w.verificationStatus||"not started")}</div>`;
   qs("workerTools").style.display=d.worker?"block":"none";
   if(d.worker){
@@ -825,8 +827,8 @@ function useWorkerLocation(){
 }
 function workerLogout(){
   if(shareWatchId){navigator.geolocation.clearWatch(shareWatchId);shareWatchId=null}
-  workerPhone="";workerToken="";delete localStorage.fixitWorkerPhone;delete localStorage.fixitWorkerToken;
-  qs("wLoginPhone").value="";qs("workerProfile").innerHTML='<div class="empty">Login to open your worker dashboard.</div>';qs("workerTools").style.display="none";qs("workerSteps").innerHTML="";qs("workerBookings").innerHTML='<div class="empty">No incoming bookings.</div>';
+  workerEmail="";workerToken="";delete localStorage.fixitWorkerEmail;delete localStorage.fixitWorkerToken;
+  qs("wLoginEmail").value="";qs("workerProfile").innerHTML='<div class="empty">Login to open your worker dashboard.</div>';qs("workerTools").style.display="none";qs("workerSteps").innerHTML="";qs("workerBookings").innerHTML='<div class="empty">No incoming bookings.</div>';
   qs("wJobs").textContent="0";qs("wEarn").textContent=money(0);qs("wRating").textContent="-";qs("wStatus").textContent="-";renderWorkerAuthState();toast("Worker logged out");
 }function workerBookingHtml(list){
   if(!list.length)return'<div class="empty">No incoming bookings.</div>';
@@ -877,7 +879,7 @@ function drawWorkerMap(lat,lng){
 
 /* ---- customer help chat ---- */
 async function sendHelp(){
-  if(!customerToken){toast("Verify your phone first to chat with support");return}
+  if(!customerToken){toast("Verify your email first to chat with support");return}
   let msg=qs("chatInput").value.trim();if(!msg)return;
   qs("chatBox").innerHTML+=`<div class="chatMsg me">${esc(msg)}</div>`;
   let d=await api("/api/help/chat",{method:"POST",headers:custHeaders(),body:JSON.stringify({message:msg})});
@@ -889,7 +891,7 @@ async function sendHelp(){
 function openReview(id){reviewBookingId=id;qs("reviewModal").classList.add("open")}
 function closeReview(){qs("reviewModal").classList.remove("open")}
 async function submitReview(){
-  if(!customerToken){toast("Verify your phone first to leave a review");return}
+  if(!customerToken){toast("Verify your email first to leave a review");return}
   let tags=[...document.querySelectorAll('#reviewModal input[type=checkbox]:checked')].map(x=>x.value);
   await api("/api/reviews",{method:"POST",headers:custHeaders(),body:JSON.stringify({bookingId:reviewBookingId,rating:qs("revStars").value,tags,comment:qs("revComment").value})});
   toast("Review submitted");closeReview();
