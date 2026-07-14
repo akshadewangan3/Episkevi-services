@@ -60,7 +60,7 @@ if (!ADMIN_API_KEY) {
   adminKeyWasGenerated = true;
 }
 
-const services = ["Electrician", "Plumber", "Carpenter", "AC Repair", "Cleaning"];
+const services = ["Electrician","Plumber","Carpenter","AC Repair","Cleaning","Painting","RO Repair","Appliance Repair"];
 
 const defaultWorkers = [
   { id: 1, name: "Ramesh Kumar", service: "Electrician", charge: 300, phone: "9876543210", rating: 4.8, exp: "7 yrs, wiring, fuse and switchboard work", area: "Ambikapur", status: "Online", verificationStatus: "verified", photoUrl: "", idUrl: "", lat: 23.1226, lng: 83.1956 },
