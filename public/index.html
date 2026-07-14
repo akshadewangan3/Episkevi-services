@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FixIt — Live Home Services</title>
+<title>EPISKEVI — Live Home Services</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -179,11 +179,34 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 @media(max-width:940px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:repeat(2,1fr)}.chips{grid-template-columns:repeat(3,1fr)}.statusLine{grid-template-columns:repeat(2,1fr)}.ticketRow{grid-template-columns:1fr}}
 @media(max-width:640px){.topin{align-items:stretch;flex-direction:column}.tabs{display:grid;grid-template-columns:repeat(4,1fr)}.wrap{padding:16px 14px 40px}.grid3,.chips,.statusLine{grid-template-columns:1fr}.head,.foot{align-items:stretch;flex-direction:column}.drawer{display:none}.drawer.open{display:grid}.hamb{display:inline-flex}.liveStrip{gap:16px}}
 </style>
+
+<style id="episkevi-v2">
+:root{
+--ink:#F7F5F2!important;
+--muted:#B8BDC7!important;
+--paper:#181C23!important;
+--wash:#0F1115!important;
+--line:rgba(255,255,255,.08)!important;
+--teal:#D97706!important;
+--teal2:#F59E0B!important;
+}
+body{background:#0F1115!important;color:#F7F5F2!important}
+.panel,.card,.ticket,.drawer,.stat,.dispatchHero{
+background:rgba(24,28,35,.92)!important;
+backdrop-filter:blur(12px)!important;
+}
+.btn,.tabs button{transition:all .25s ease!important}
+.btn:hover,.ticket:hover,.card:hover{
+transform:translateY(-4px)!important;
+}
+.mobile-bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#181C23;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-around;padding:10px;z-index:999}
+@media(min-width:900px){.mobile-bottom-nav{display:none}}
+</style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
 <header class="top"><div class="topin">
-  <div class="brand" onclick="show('landing')"><span class="mark">FI</span>FixIt</div>
+  <div class="brand" onclick="show('landing')"><span class="mark">FI</span>EPISKEVI</div>
   <nav class="tabs">
     <button id="tabLanding" class="active" onclick="show('landing')">Dispatch</button>
     <button id="tabCustomer" onclick="show('customer')">Customer</button>
@@ -196,7 +219,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-.01em;font-weight:700}
 <!-- ============ LANDING / DISPATCH BOARD ============ -->
 <main id="landing" class="screen active"><div class="wrap">
   <section class="dispatchHero">
-    <div class="eyebrow">FixIt · Ambikapur</div>
+    <div class="eyebrow">EPISKEVI · Ambikapur</div>
     <h1>Are you booking a repair, or here to work?</h1>
     <p class="lead">Pick your side to continue. Homeowners verify their phone and book a trusted, verified pro. Workers verify their phone, get approved, and start taking jobs.</p>
     <div class="liveStrip">
@@ -562,7 +585,7 @@ function renderWorkers(){
   qs("workers").innerHTML=list.length?list.map(w=>{
     let fee=Math.round(w.charge*(settings.commissionRate||.1)),total=w.charge+fee;
     let dist=w.distanceKm==null?"Set location":`${w.distanceKm} km away`;
-    return `<article class="card worker"><div class="row"><div><div class="name">${esc(w.service)}</div><div class="meta">${esc(w.area)} area</div></div><span class="tag ${w.status=="Online"?"green":"amber"}">${esc(w.status)}</span></div><div class="tags"><span class="tag green">Verified</span><span class="tag blue">${esc(dist)}</span><span class="tag">Within ${maxKm} km radar</span></div><div class="exp">Book this profession. FixIt assigns a verified nearby worker privately, like a ride booking.</div><div class="foot"><div><div class="price">${money(total)}</div><div class="meta">incl. platform fee</div></div><button class="btn primary" ${w.status!="Online"?"disabled":""} onclick="openBooking(${w.id})">Book worker</button></div></article>`;
+    return `<article class="card worker"><div class="row"><div><div class="name">${esc(w.service)}</div><div class="meta">${esc(w.area)} area</div></div><span class="tag ${w.status=="Online"?"green":"amber"}">${esc(w.status)}</span></div><div class="tags"><span class="tag green">Verified</span><span class="tag blue">${esc(dist)}</span><span class="tag">Within ${maxKm} km radar</span></div><div class="exp">Book this profession. EPISKEVI assigns a verified nearby worker privately, like a ride booking.</div><div class="foot"><div><div class="price">${money(total)}</div><div class="meta">incl. platform fee</div></div><button class="btn primary" ${w.status!="Online"?"disabled":""} onclick="openBooking(${w.id})">Book worker</button></div></article>`;
   }).join(""):'<div class="empty" style="grid-column:1/-1">No worker found.</div>';
 }
 
@@ -698,7 +721,7 @@ async function payRazorpay(){
   if(!validateBookingForm()){errToast("Please fix the highlighted field(s) before paying");return}
   let total=currentWorker.charge+Math.round(currentWorker.charge*(settings.commissionRate||.1));
   let o=await api("/api/create-order",{method:"POST",headers:custHeaders(),body:JSON.stringify({amount:total*100,receipt:"fixit_"+Date.now()})});
-  new Razorpay({key:o.key_id,amount:o.amount,currency:o.currency,order_id:o.order_id,name:settings.merchantName||"FixIt",description:currentWorker.service+" booking",
+  new Razorpay({key:o.key_id,amount:o.amount,currency:o.currency,order_id:o.order_id,name:settings.merchantName||"EPISKEVI",description:currentWorker.service+" booking",
     handler:async r=>{await api("/api/verify-payment",{method:"POST",headers:custHeaders(),body:JSON.stringify(r)});await book("razorpay")},
     modal:{ondismiss:()=>errToast("Payment cancelled")}}).open();
 }
